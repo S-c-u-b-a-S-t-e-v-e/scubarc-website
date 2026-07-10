@@ -1,0 +1,185 @@
+ScubaRC Cloudflare Locator Report
+================================================================================
+Run time: 2026-07-09 19:46:56
+Current folder: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website
+
+DNS NSLOOKUP
+--------------------------------------------------------------------------------
+Server:  CR1000A.mynetworksettings.com
+Address:  192.168.1.1
+
+scubaresearchcollective.com	nameserver = tate.ns.cloudflare.com
+scubaresearchcollective.com	nameserver = lila.ns.cloudflare.com
+
+lila.ns.cloudflare.com	internet address = 172.64.32.186
+lila.ns.cloudflare.com	internet address = 173.245.58.186
+lila.ns.cloudflare.com	internet address = 108.162.192.186
+tate.ns.cloudflare.com	internet address = 108.162.195.191
+tate.ns.cloudflare.com	internet address = 162.159.44.191
+tate.ns.cloudflare.com	internet address = 172.64.35.191
+Non-authoritative answer:
+
+GIT CONFIGS
+--------------------------------------------------------------------------------
+
+D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\.git\config
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/S-c-u-b-a-S-t-e-v-e/scubarc-website.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+
+TEXT FILE HITS
+--------------------------------------------------------------------------------
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\depthbot.html
+MATCHED: scubarc
+  L51: As ScubaRC grows, we aim to work alongside clinicians, researchers, and veteran
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\donate.html
+MATCHED: scubarc
+  L28: ScubaRC is being structured as a nonprofit research institute. Funding will
+  L39: <li>How ScubaRC reports on impact and use of funds.</li>
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\governance.html
+MATCHED: scubarc
+  L37: As structures are formalized, ScubaRC will publish:
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\index.html
+MATCHED: scubarc
+  L28: Scuba Research Collective (ScubaRC) is a veteran-led research institute advancing
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\mdib.html
+MATCHED: scubarc
+  L28: Zero-Sum MDIB (Mis/Dis Information Bot) is ScubaRC&apos;s framework for mapping
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\mission.html
+MATCHED: scubarc
+  L51: ScubaRC is founded by a retired U.S. Navy Chief, rescue swimmer, and cyber threat
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\quantum.html
+MATCHED: scubarc
+  L28: ScubaRC&apos;s quantum work focuses on using NV-center diamond magnetometry and
+  L42: cycles, and more precise forensic information. ScubaRC aims to keep this work
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\README.md
+MATCHED: scubarc, scubarc-website
+  L1: # scubarc-website
+
+FILE: D:\Demo-Room\Scuba_Stevez_Demo_Room\Projects\scubarc-website\.git\config
+MATCHED: scubarc, scubarc-website
+  L9: url = https://github.com/S-c-u-b-a-S-t-e-v-e/scubarc-website.git
+
+FILE: C:\Users\Spook\Downloads\Tim_Herbin_ScubaRC_AI_Harness_Profile.md
+MATCHED: scubarc
+  L3: **Purpose:** This file gives an AI harness immediate orientation on who Tim is, how he uses AI, what ScubaRC is building, and what behavioral rules the assistant must follow from the start.
+  L5: **Intended use:** Copy or adapt this into `D:\AI\Hermes\USER.md`, `D:\AI\Hermes\PROJECT_STATE.md`, or a project-level context file such as `D:\AI\ScubaRC\SCUBARC_CONTEXT.md`.
+  L163: ## 7. ScubaRC
+  L165: **ScubaRC** is Tim’s home / project identity for applied AI, field systems, research, prototypes, and operational technology concepts.
+  L167: ScubaRC is not just a brand. It is a working lab concept for:
+
+BROWSER HISTORY HITS
+--------------------------------------------------------------------------------
+
+WHEN: 2026-07-09 23:08:55
+BROWSER PROFILE: Default
+TITLE: Account home | Herbin.tim@gmail.com's Account | Cloudflare
+URL: https://dash.cloudflare.com/26e2b81ac16a496e58641aa15bd566fe/home/overview
+
+WHEN: 2026-07-09 23:08:55
+BROWSER PROFILE: Default
+TITLE: Account home | Herbin.tim@gmail.com's Account | Cloudflare
+URL: https://dash.cloudflare.com/26e2b81ac16a496e58641aa15bd566fe/home
+
+WHEN: 2026-07-09 23:08:55
+BROWSER PROFILE: Default
+TITLE: Home | Cloudflare
+URL: https://dash.cloudflare.com/26e2b81ac16a496e58641aa15bd566fe
+
+WHEN: 2026-07-09 23:08:53
+BROWSER PROFILE: Default
+TITLE: Cloudflare | Web Performance & Security
+URL: https://dash.cloudflare.com/
+
+WHEN: 2026-07-09 23:08:51
+BROWSER PROFILE: Default
+TITLE: Cloudflare Dashboard | Manage Your Account
+URL: https://accounts.google.com/ServiceLogin
+
+WHEN: 2026-07-09 23:08:51
+BROWSER PROFILE: Default
+TITLE: Cloudflare Dashboard | Manage Your Account
+URL: https://oidc.iam.cfapi.net/api/v1/sso/callback
+
+WHEN: 2026-07-09 23:08:51
+BROWSER PROFILE: Default
+TITLE: Cloudflare Dashboard | Manage Your Account
+URL: https://dash.cloudflare.com/login/google
+
+WHEN: 2026-07-09 23:08:48
+BROWSER PROFILE: Default
+TITLE: Sign in - Google Accounts
+URL: https://accounts.google.com/o/oauth2/v2/auth
+
+WHEN: 2026-07-09 23:08:48
+BROWSER PROFILE: Default
+TITLE: Sign in - Google Accounts
+URL: https://accounts.google.com/v3/signin/accountchooser
+
+WHEN: 2026-07-09 23:08:39
+BROWSER PROFILE: Default
+TITLE: Cloudflare Dashboard | Manage Your Account
+URL: https://dash.cloudflare.com/login
+
+WHEN: 2026-07-09 23:08:02
+BROWSER PROFILE: Default
+TITLE: Home � Scuba Research Collective
+URL: https://scubarc-website.pages.dev/
+
+WHEN: 2026-07-09 23:06:40
+BROWSER PROFILE: Default
+TITLE: Error 404 | Page not found
+URL: https://www.scubaresearchcollective.com/
+
+WHEN: 2026-07-09 23:06:10
+BROWSER PROFILE: Default
+TITLE: Error 404 | Page not found
+URL: https://scubaresearchcollective.com/
+
+WHEN: 2026-07-09 23:06:10
+BROWSER PROFILE: Default
+TITLE: Error 404 | Page not found
+URL: https://www.scubaresearchcollective.com/
+
+WHEN: 2026-07-09 22:28:08
+BROWSER PROFILE: Default
+TITLE: Home address
+URL: https://accounts.google.com/AccountChooser
+
+WHEN: 2026-07-09 18:21:17
+BROWSER PROFILE: Default
+TITLE: CP_575_G.pdf
+URL: file:///C:/Users/Spook/Downloads/ScubaRC-Initial/CP_575_G.pdf
+
+WHEN: 2026-07-09 18:21:15
+BROWSER PROFILE: Default
+TITLE: Initial Resolutions - LLC Single Member -- Scuba Research Collective LLC.pdf
+URL: file:///C:/Users/Spook/Downloads/ScubaRC-Initial/Initial%20Resolutions%20-%20LLC%20Single%20Member%20--%20Scuba%20Research%20Collective%20LLC.pdf
+
+WHEN: 2026-07-09 18:21:12
+BROWSER PROFILE: Default
+TITLE: Free Basic Operating Agreement - LLC Single Member -- Scuba Research Collective LLC.pdf
+URL: file:///C:/Users/Spook/Downloads/ScubaRC-Initial/Free%20Basic%20Operating%20Agreement%20-%20LLC%20Single%20Member%20--%20Scuba%20Research%20Collective%20LLC.pdf
+
+WHEN: 2026-07-09 18:21:10
+BROWSER PROFILE: Default
+TITLE: 06-15-26 - VA - Formation Document - Scuba Research Collective LLC.pdf
+URL: file:///C:/Users/Spook/Downloads/ScubaRC-Initial/06-15-26%20-%20VA%20-%20Formation%20Document%20-%20Scuba%20Research%20Collective%20LLC.pdf
