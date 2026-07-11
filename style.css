@@ -107,3 +107,23 @@ nav a[aria-current="page"] {
   margin-top: 0.8rem;
   background: linear-gradient(90deg, var(--gold), transparent);
 }
+
+/* Founding context layout */
+.founding-split {
+  grid-template-columns: minmax(460px, 1.1fr) minmax(0, 0.9fr);
+}
+
+.founding-heading span {
+  display: block;
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .founding-split {
+    grid-template-columns: 1fr;
+  }
+
+  .founding-heading span {
+    white-space: normal;
+  }
+}
