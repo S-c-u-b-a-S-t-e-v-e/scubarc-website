@@ -1,2 +1,6 @@
 
 hamilton.html
+
+# local-only diagnostic/utility scripts and reports — never belong in a public Pages deploy
+*.py
+*_report.txt
