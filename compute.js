@@ -10,6 +10,7 @@
   const workDetail = document.getElementById("work-detail");
   const progress = document.getElementById("compute-progress");
   const receiptCard = document.getElementById("receipt-card");
+  let turnstileWidgetId = null;
 
   const capabilities = {
     logical_processors: navigator.hardwareConcurrency || 1,
@@ -39,6 +40,28 @@
     const body = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(body.error || `request_failed_${response.status}`);
     return body;
+  }
+
+  function loadTurnstile() {
+    if (!config.turnstileSiteKey) return;
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (!window.turnstile) return;
+      turnstileWidgetId = window.turnstile.render("#turnstile-slot", {
+        sitekey: config.turnstileSiteKey,
+        theme: "dark"
+      });
+    };
+    document.head.appendChild(script);
+  }
+
+  function turnstileToken() {
+    if (!config.turnstileSiteKey) return "";
+    if (!window.turnstile || turnstileWidgetId === null) return "";
+    return window.turnstile.getResponse(turnstileWidgetId) || "";
   }
 
   async function refreshStats() {
@@ -75,18 +98,43 @@
     });
   }
 
-  async function contribute(payload) {
-    statusEl.textContent = "Registering this device…";
+  async function enrollIfNeeded(payload) {
+    const existingNodeId = localStorage.getItem("scubarc_cc_node_id") || "";
+    const existingNodeToken = localStorage.getItem("scubarc_cc_node_token") || "";
+    if (existingNodeId && existingNodeToken) return { node_id: existingNodeId, node_token: existingNodeToken, reused: true };
+
     const enrollment = await api("/enroll", { method: "POST", body: JSON.stringify(payload) });
     localStorage.setItem("scubarc_cc_node_id", enrollment.node_id);
     localStorage.setItem("scubarc_cc_node_token", enrollment.node_token);
+    return enrollment;
+  }
+
+  async function contribute(payload) {
+    statusEl.textContent = "Registering this device…";
+    let enrollment = await enrollIfNeeded(payload);
 
     statusEl.textContent = "Requesting a bounded work unit…";
-    const work = await api("/work", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${enrollment.node_token}` },
-      body: JSON.stringify({ node_id: enrollment.node_id })
-    });
+    let work;
+    try {
+      work = await api("/work", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${enrollment.node_token}` },
+        body: JSON.stringify({ node_id: enrollment.node_id })
+      });
+    } catch (error) {
+      if (enrollment.reused && error.message === "unauthorized_node") {
+        localStorage.removeItem("scubarc_cc_node_id");
+        localStorage.removeItem("scubarc_cc_node_token");
+        enrollment = await enrollIfNeeded(payload);
+        work = await api("/work", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${enrollment.node_token}` },
+          body: JSON.stringify({ node_id: enrollment.node_id })
+        });
+      } else {
+        throw error;
+      }
+    }
 
     workPanel.hidden = false;
     receiptCard.hidden = true;
@@ -129,6 +177,10 @@
 
     const data = new FormData(form);
     if (!data.get("consent")) return;
+    if (config.turnstileSiteKey && !turnstileToken()) {
+      statusEl.textContent = "Please complete the human verification check.";
+      return;
+    }
 
     startButton.disabled = true;
     try {
@@ -138,9 +190,10 @@
         locality: String(data.get("locality") || "").trim(),
         virginia_opt_in: Boolean(data.get("virginia_opt_in")),
         consent_version: "cc-alpha-2026-09-04",
-        turnstile_token: window.turnstile?.getResponse?.() || "",
+        turnstile_token: turnstileToken(),
         capabilities
       });
+      if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
     } catch (error) {
       statusEl.textContent = `Unable to complete the Alpha work unit: ${error.message}`;
       workDetail.textContent = "Work unit stopped.";
@@ -149,5 +202,6 @@
     }
   });
 
+  loadTurnstile();
   refreshStats();
 })();
