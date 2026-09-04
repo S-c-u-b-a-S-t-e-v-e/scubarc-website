@@ -110,6 +110,15 @@
       const rankedEntry = { ...entry, rank: entry.rank || i + 1 };
       leaderbody.appendChild(renderEntry(rankedEntry, i));
     });
+    
+    // Add exhibition footnote if any exhibition entries present
+    const hasExhibition = data.entries.some(e => e.exhibition);
+    if (hasExhibition) {
+      const footnote = document.createElement('tr');
+      footnote.className = 'leaderboard-footnote';
+      footnote.innerHTML = '<td colspan="5" style="font-size:.75rem;color:var(--muted);padding-top:.5rem;">EXHIBITION entries are ScubaRC organizer runs — not prize eligible.</td>';
+      leaderbody.appendChild(footnote);
+    }
   }
 
   function renderStats(stats) {

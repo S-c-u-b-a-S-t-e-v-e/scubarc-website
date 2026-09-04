@@ -101,7 +101,7 @@
       div.className = 'live-leaderboard-item' + (entry.exhibition ? ' exhibition-row' : '');
       div.innerHTML = `
         <span class="rank">${entry.rank || i + 1}</span>
-        <span class="nickname">${escapeHtml(entry.nickname)}</span>
+        <span class="nickname">${escapeHtml(entry.nickname)}${entry.exhibition ? ' <span class="exhibition" style="font-size:.6rem;">EXH</span>' : ''}</span>
         <span class="distance">${formatDistanceShort(entry.distance_miles)}</span>
       `;
       liveLeaderboard.appendChild(div);

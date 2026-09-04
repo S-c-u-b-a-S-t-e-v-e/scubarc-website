@@ -318,6 +318,20 @@
   }
 }
 
+/* Exhibition footnote */
+.leaderboard-footnote td {
+  border-top: 1px solid var(--line) !important;
+}
+
+/* Live page exhibition badge */
+.live-leaderboard-item .exhibition {
+  font-size: .6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-left: .5rem;
+}
+
 /* Live/TV page */
 .live-page {
   min-height: 100vh;

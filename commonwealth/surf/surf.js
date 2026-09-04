@@ -24,16 +24,25 @@
 
   // Update all Commonwealth links to preserve src
   function updateCommonwealthLinks() {
-    document.querySelectorAll('a[href^="../commonwealth"], a[href^="./"], a[href^="/commonwealth"]').forEach(a => {
+    document.querySelectorAll('a[href]').forEach(a => {
       const href = a.getAttribute('href');
-      if (href && !href.startsWith('http') && !href.startsWith('#')) {
-        a.setAttribute('href', preserveSrc(href));
+      if (!href) return;
+      if (href.startsWith('http') || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+        return;
       }
-    });
-    // Also update absolute links to commonwealth routes
-    document.querySelectorAll('a[href*="/commonwealth/"]').forEach(a => {
-      const href = a.getAttribute('href');
-      if (href) {
+      // Check if it's a Commonwealth route
+      const isCommonwealthRoute =
+        href.includes('/commonwealth/') ||
+        href.startsWith('../commonwealth/') ||
+        href.startsWith('./commonwealth/') ||
+        href === '../commonwealth' ||
+        href === './commonwealth' ||
+        href === 'surf' ||
+        href === 'leaderboard' ||
+        href === 'live' ||
+        href === 'compute';
+
+      if (isCommonwealthRoute) {
         a.setAttribute('href', preserveSrc(href));
       }
     });
@@ -68,20 +77,15 @@
       const src = getSrc();
 
       // Store nickname and src in sessionStorage for game page to pick up
+      // SESSIONSTORAGE CONTRACT (for game worker):
+      // - commonwealth_nickname: string (max 24 chars, player's chosen nickname)
+      // - commonwealth_src: 'bar' | 'direct' | 'shared' | 'scubarc' (attribution source)
       sessionStorage.setItem('commonwealth_nickname', nickname);
       sessionStorage.setItem('commonwealth_src', src);
 
-      // TODO: Game worker will implement /api/compute/game/start
-      // For now, redirect to a placeholder game page or show integration point
-      // The game worker should read nickname and src from sessionStorage
-      // and call POST /api/compute/game/start with { nickname, src }
-
-      // Placeholder: redirect to a game page that the game worker will create
-      // For now, we'll show an integration message
-      statusEl.textContent = 'Game integration pending — game worker owns implementation.';
-
-      // When game worker creates the game page, this should redirect to:
-      // window.location.href = preserveSrc('../game.html'); // or whatever the game route is
+      // Redirect to game page (game worker implements game.html)
+      // Game worker reads sessionStorage, calls POST /api/compute/game/start with { nickname, src }
+      window.location.href = preserveSrc('../game.html');
     });
   }
 
