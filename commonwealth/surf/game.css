@@ -1,0 +1,191 @@
+/* Commonwealth Surf Game — Game-specific styles */
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  aspect-ratio: 9 / 16;
+  background: #0a1628;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), inset 0 0 60px rgba(78, 205, 196, 0.05);
+}
+
+#surf-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.game-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.contest-badge {
+  background: rgba(78, 205, 196, 0.2);
+  border: 1px solid #4ecdc4;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: #4ecdc4;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.lane-indicators {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.lane-indicator {
+  width: 28px;
+  height: 28px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.15s ease;
+}
+
+.lane-indicator.active {
+  border-color: #4ecdc4;
+  background: rgba(78, 205, 196, 0.3);
+  box-shadow: 0 0 12px rgba(78, 205, 196, 0.4);
+}
+
+.game-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 22, 40, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 10;
+  backdrop-filter: blur(4px);
+}
+
+.overlay-content {
+  text-align: center;
+  max-width: 90%;
+  width: 100%;
+}
+
+.overlay-content h2 {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  color: #fff;
+  margin: 0 0 0.25rem;
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  color: #4ecdc4;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0 0 1.5rem;
+}
+
+.result-distance {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: clamp(2.5rem, 8vw, 3.5rem);
+  font-weight: 700;
+  color: #4ecdc4;
+  margin: 1rem 0 0.5rem;
+  text-shadow: 0 0 20px rgba(78, 205, 196, 0.4);
+}
+
+.result-reason {
+  color: #f87171;
+  font-size: 1rem;
+  margin: 0.5rem 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.result-note {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 480px) {
+  .overlay-actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.nickname-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.nickname-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 280px;
+  text-align: left;
+}
+
+.nickname-form input {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.nickname-form input:focus {
+  outline: none;
+  border-color: #4ecdc4;
+  box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+}
+
+.nickname-form input::placeholder {
+  color: #64748b;
+}
+
+/* Ocean wave animation */
+@keyframes wave-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 200px 0; }
+}
+
+#surf-canvas {
+  background-image: 
+    radial-gradient(ellipse at 20% 80%, rgba(78, 205, 196, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(78, 205, 196, 0.05) 0%, transparent 50%);
+}
