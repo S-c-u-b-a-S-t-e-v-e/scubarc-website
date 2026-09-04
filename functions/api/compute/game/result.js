@@ -1,4 +1,4 @@
-import { json, readJson, newId, authenticateNode, clampInt } from "../../_lib.js";
+import { json, readJson, newId, authenticateNode, clampInt } from "./_lib.js";
 
 function getContestDay() {
   const now = new Date();
@@ -67,7 +67,7 @@ function simulateSurfRun(course, events) {
   const speedCmPerMs = 0.5;
   let terminalReason = "timeout";
   
-  const eventIdx = 0;
+  let eventIdx = 0;
   let nextEventTime = events[0] ? events[0].timestamp_ms : Infinity;
   
   for (const obstacle of course) {
@@ -103,7 +103,7 @@ export async function onRequestPost({ request, env }) {
   if (!env.COMMUNITY_DB) return json({ error: "community_compute_not_configured" }, 503);
 
   try {
-    const body = await readJson(request, 32768);
+    const body = await readJson(request, 65536);
     const node = await authenticateNode(env, request, String(body.node_id || ""));
     if (!node) return json({ error: "unauthorized_node" }, 401);
 
@@ -118,7 +118,7 @@ export async function onRequestPost({ request, env }) {
     const dailySeed = generateDailySeed(contestDay);
 
     const run = await env.COMMUNITY_DB.prepare(
-      `SELECT run_id, node_id, contributor_id, seed, game_version, contest_day, status, expires_at, created_at
+      `SELECT run_id, node_id, contributor_id, seed, game_type, game_version, contest_day, status, expires_at, created_at
        FROM game_runs WHERE run_id = ?1`
     ).bind(runId).first();
 

@@ -1,4 +1,4 @@
-import { json } from "../../_lib.js";
+import { json } from "./_lib.js";
 
 export async function onRequestGet({ env, request }) {
   if (!env.COMMUNITY_DB) return json({ error: "community_compute_not_configured" }, 503);
