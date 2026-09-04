@@ -185,14 +185,13 @@
     startButton.disabled = true;
     try {
       await contribute({
-        display_name: String(data.get("display_name") || "").trim(),
-        email: String(data.get("email") || "").trim(),
-        locality: String(data.get("locality") || "").trim(),
-        virginia_opt_in: Boolean(data.get("virginia_opt_in")),
-        consent_version: "cc-alpha-2026-09-04",
-        turnstile_token: turnstileToken(),
-        capabilities
-      });
+              display_name: String(data.get("display_name") || "").trim(),
+              locality: String(data.get("locality") || "").trim(),
+              virginia_opt_in: Boolean(data.get("virginia_opt_in")),
+              consent_version: "cc-alpha-2026-09-04",
+              turnstile_token: turnstileToken(),
+              capabilities
+            });
       if (window.turnstile && turnstileWidgetId !== null) window.turnstile.reset(turnstileWidgetId);
     } catch (error) {
       statusEl.textContent = `Unable to complete the Alpha work unit: ${error.message}`;

@@ -30,9 +30,10 @@
     <h1>Built by the Commonwealth.</h1>
     <p class="lead">Turn a few minutes of idle computing power into governed research capacity. Your device receives one bounded work unit, computes locally in the browser, and returns only a constrained result receipt for verification.</p>
     <div class="actions">
-      <a class="button primary" href="#contribute">Contribute compute</a>
-      <a class="button" href="#how-it-works">How it works</a>
-    </div>
+          <a class="button primary" href="#contribute">Contribute compute</a>
+          <a class="button" href="surf.html">Play Commonwealth Surf</a>
+          <a class="button" href="#how-it-works">How it works</a>
+        </div>
     <p class="compute-trust-line">No arbitrary file uploads. No shell access. No access to your personal files. Stop by closing the page.</p>
   </section>
 
@@ -59,21 +60,17 @@
     </div>
     <form class="compute-form" id="compute-form">
       <label>
-        Display name <span class="muted-text">(optional)</span>
-        <input type="text" name="display_name" maxlength="80" autocomplete="name" />
-      </label>
-      <label>
-        Email <span class="muted-text">(optional; only for project updates)</span>
-        <input type="email" name="email" maxlength="160" autocomplete="email" />
-      </label>
-      <label>
-        Virginia locality <span class="muted-text">(optional)</span>
-        <input type="text" name="locality" maxlength="100" placeholder="Virginia Beach, Richmond, Roanoke…" />
-      </label>
-      <label class="checkbox-row">
-        <input type="checkbox" name="virginia_opt_in" />
-        <span>I am currently participating from Virginia.</span>
-      </label>
+              Display name <span class="muted-text">(optional)</span>
+              <input type="text" name="display_name" maxlength="80" autocomplete="name" />
+            </label>
+            <label>
+              Virginia locality <span class="muted-text">(optional)</span>
+              <input type="text" name="locality" maxlength="100" placeholder="Virginia Beach, Richmond, Roanoke…" />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" name="virginia_opt_in" />
+              <span>I am currently participating from Virginia.</span>
+            </label>
       <label class="checkbox-row required-row">
         <input type="checkbox" name="consent" required />
         <span>I understand this is voluntary, may use electricity, is not represented as a charitable tax deduction, and I may stop at any time.</span>
