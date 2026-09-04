@@ -17,7 +17,7 @@
 
   function preserveSrc(href) {
     const src = getSrc();
-    const url = new URL(href, window.location.origin);
+    const url = new URL(href, window.location.href);
     url.searchParams.set('src', src);
     return url.toString();
   }
