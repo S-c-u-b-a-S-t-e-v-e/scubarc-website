@@ -60,6 +60,7 @@
   }
 
   function formatDistance(miles) {
+    miles = Number(miles);
     if (typeof miles !== 'number' || !Number.isFinite(miles)) return '—';
     return miles.toFixed(2);
   }

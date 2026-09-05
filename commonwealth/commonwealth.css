@@ -655,3 +655,15 @@
   flex-wrap: wrap;
   gap: 1rem;
 }
+/* Surf flow styles served under the existing CSP. */
+.surf-flow-style-1 { text-align:center;margin-bottom:1rem; }
+.surf-flow-style-2 { margin-top:1.5rem;text-align:center; }
+.surf-flow-style-3 { color:var(--muted);margin:0 .5rem; }
+.surf-flow-style-4 { color:var(--muted);margin:0 .5rem; }
+.surf-flow-style-5 { margin-top:3rem; }
+.surf-flow-style-6 { margin-top:1.5rem; }
+.surf-flow-style-7 { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+.surf-flow-style-8 { margin-top:2rem; }
+.surf-flow-style-9 { margin-top:1.5rem; }
+
+#leaderboard-container { max-width: 100%; overflow-x: auto; }

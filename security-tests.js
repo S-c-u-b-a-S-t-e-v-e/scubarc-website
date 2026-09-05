@@ -290,13 +290,26 @@ async function runTests() {
 
   // Test 20: Server validates impossible timing
     console.log("\n20. SERVER VALIDATES IMPOSSIBLE TIMING");
-    if (resultCode2.includes("Number.isInteger") && resultCode2.includes("Number.isFinite") && 
-        resultCode2.includes("ts < 0") && resultCode2.includes("ts < lastTime") &&
-        resultCode2.includes("maxAllowedDurationMs") && resultCode2.includes("serverObservedElapsedMs")) {
-      console.log("   PASS: Server rejects non-integer, non-finite, negative, backward timestamps, and validates timeline bounds");
+    try {
+      const assert = require('node:assert/strict');
+      const vm = require('node:vm');
+      const source = resultCode2.slice(resultCode2.indexOf('function validateTiming('), resultCode2.indexOf('function simulateSurfRun('));
+      const now = Date.now();
+      const validate = vm.runInNewContext(source + '; validateTiming', { Date });
+      const log = ts => [{ timestamp_ms: 0, event_type: 'run_started' }, { timestamp_ms: ts, event_type: 'run_ended' }];
+      const created = new Date(now - 600000).toISOString();
+      const expires = new Date(now).toISOString();
+      assert.equal(validate(log(600000), created, expires), true);
+      for (const ts of [-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, 600001, 601000, now]) {
+        assert.equal(validate(log(ts), created, expires), false);
+      }
+      assert.equal(validate([{timestamp_ms:0,event_type:'run_started'}, {timestamp_ms:100,event_type:'steer_left'}, {timestamp_ms:99,event_type:'run_ended'}], created, expires), false);
+      assert.equal(validate(log(1001), created, new Date(now - 599000).toISOString()), false);
+      assert.equal(validate(log(100000), new Date(now).toISOString(), new Date(now + 600000).toISOString()), false);
+      console.log('   PASS: Executed safe integer, nonnegative, monotonic, actual lifetime, server elapsed and exact TTL checks');
       passed++;
-    } else {
-      console.log("   FAIL: Server timing validation incomplete");
+    } catch (error) {
+      console.log('   FAIL: Server timing invariant:', error.message);
       failed++;
     }
 

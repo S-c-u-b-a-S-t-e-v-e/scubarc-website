@@ -28,6 +28,7 @@
   let lastFrameTime = 0;
   let playableMs = 0;
   let expiryTimer = null;
+  let leaderboardTimer = null;
   let surfer = { lane: 1, targetLane: 1, y: 0, x: 0, width: 0, height: 0 };
   let obstacles = [];
   let course = [];
@@ -133,7 +134,8 @@
   function readSessionStorage() {
     try {
       const nickname = sessionStorage.getItem("commonwealth_nickname") || "";
-      const src = sessionStorage.getItem("commonwealth_src") || "direct";
+      const rawSrc = sessionStorage.getItem("commonwealth_src");
+      const src = ["bar", "direct", "shared", "scubarc"].includes(rawSrc) ? rawSrc : "direct";
       const runId = sessionStorage.getItem("commonwealth_run_id") || "";
       const verifiedDistance = sessionStorage.getItem("commonwealth_verified_distance") || "";
       return { nickname, src, runId, verifiedDistance };
@@ -153,24 +155,28 @@
 
   function clearSessionStorage() {
     try {
-      sessionStorage.removeItem("commonwealth_nickname");
-      sessionStorage.removeItem("commonwealth_src");
       sessionStorage.removeItem("commonwealth_run_id");
       sessionStorage.removeItem("commonwealth_verified_distance");
     } catch (_) {}
   }
 
   async function startGameRun() {
+    if (running || gameState === "starting") return;
+    const session = readSessionStorage();
+    if (!session.nickname.trim()) {
+      showError("Return to Surf entry to choose a nickname and accept consent.");
+      return;
+    }
     const credentials = await getNodeCredentials();
     if (!credentials) {
-      showError("Please complete Compute enrollment first to get a node token.");
+      showError("Return to Surf entry to verify this browser before playing.");
       return;
     }
     nodeId = credentials.node_id;
     nodeToken = credentials.node_token;
 
-    const session = readSessionStorage();
     sessionSrc = session.src || "direct";
+    gameState = "starting";
 
     try {
       const requestStarted = performance.now();
@@ -198,6 +204,13 @@
       expiryTimer = setTimeout(() => endRun("timeout"), playableMs);
       requestAnimationFrame(gameLoop);
     } catch (error) {
+      gameState = "menu";
+      if (error.message === "unauthorized_node") {
+        localStorage.removeItem("scubarc_cc_node_id");
+        localStorage.removeItem("scubarc_cc_node_token");
+        showError("This browser credential is no longer valid. Return to Surf entry to verify again.");
+        return;
+      }
       showError(`Failed to start run: ${error.message}`);
     }
   }
@@ -431,6 +444,7 @@
     resultReason.textContent = reason === "collision" ? "CRASH" : reason === "course_complete" ? "COURSE COMPLETE" : "RUN ENDED";
     resultReason.style.color = reason === "collision" ? "#f87171" : "#4ecdc4";
     resultNote.textContent = "Submitting run to server for verification...";
+    playAgainBtn.disabled = true;
     resultDisplay.hidden = false;
     gameOverlay.hidden = false;
 
@@ -466,7 +480,7 @@
           runId: currentRun.run_id
         });
         
-        setTimeout(() => {
+        leaderboardTimer = setTimeout(() => {
           window.location.href = `/commonwealth/leaderboard/?src=${encodeURIComponent(sessionSrc)}&verified=1&run=${encodeURIComponent(currentRun.run_id)}`;
         }, 1500);
       } else {
@@ -478,12 +492,14 @@
       resultNote.textContent = "Submission failed: " + error.message;
       nicknameForm.hidden = false;
       nicknameInput.focus();
+    } finally {
+      playAgainBtn.disabled = false;
     }
   }
 
   function showError(msg) {
     overlayContent.querySelector("h2").textContent = "ERROR";
-    overlayContent.querySelector(".subtitle").textContent = "";
+    overlayContent.querySelector(".subtitle").textContent = msg;
     resultDisplay.hidden = true;
     nicknameForm.hidden = true;
     resultNote.textContent = msg;
@@ -513,6 +529,7 @@
     }, { passive: true });
 
     playAgainBtn.addEventListener("click", () => {
+      clearTimeout(leaderboardTimer);
       gameOverlay.hidden = true;
       clearSessionStorage();
       startGameRun();
@@ -524,26 +541,19 @@
       window.location.href = `/commonwealth/leaderboard/?src=${encodeURIComponent(session.src || "direct")}`;
     });
 
-    // Check if we have a verified run to show immediately
+    // A completed run can be replayed without losing the Surf identity.
     const session = readSessionStorage();
     if (session.verifiedDistance && session.runId) {
       resultDistance.textContent = session.verifiedDistance + " miles";
       resultReason.textContent = "VERIFIED";
       resultReason.style.color = "#4ecdc4";
-      resultNote.textContent = "Previously verified run. Redirecting to leaderboard...";
+      resultNote.textContent = "Previously verified run. Play again to start a fresh run.";
       resultDisplay.hidden = false;
       gameOverlay.hidden = false;
-      setTimeout(() => {
-        window.location.href = `/commonwealth/leaderboard/?src=${encodeURIComponent(session.src)}&verified=1&run=${encodeURIComponent(session.runId)}`;
-      }, 1500);
       return;
     }
 
-    // Auto-start if ?play=1
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("play") === "1") {
-      startGameRun();
-    }
+    startGameRun();
   }
 
   if (document.readyState === "loading") {

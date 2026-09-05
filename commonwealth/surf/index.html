@@ -61,7 +61,7 @@
       <p class="surf-tagline">Free to play · No purchase necessary · Unlimited attempts · $25 daily high score</p>
     </div>
     
-    <p class="muted-text" style="text-align:center;margin-bottom:1rem;">Nickname will appear on the public leaderboard. No email, password, or account required.</p>
+    <p class="surf-flow-style-1 muted-text">Nickname will appear on the public leaderboard. No email, password, or account required.</p>
     
     <form class="surf-form" id="surf-form">
       <div class="form-group">
@@ -73,20 +73,22 @@
         <input type="checkbox" name="consent" id="surf-consent" required />
         <span>I understand this is voluntary, free to play, unlimited attempts, and the server leaderboard is authoritative. ScubaRC organizer/exhibition entries are not prize eligible.</span>
       </label>
+      <p>Your browser stores a pseudonymous credential for verified play. No compute work is required.</p>
+      <div id="surf-human-verification"></div>
       <button class="button primary compute-start" type="submit" id="surf-start">START SURFING</button>
       <p class="form-status" id="surf-status" role="status" aria-live="polite"></p>
     </form>
 
-    <div class="surf-links" style="margin-top:1.5rem;text-align:center;">
+    <div class="surf-flow-style-2 surf-links">
       <a href="/commonwealth/leaderboard/" class="text-link">View today's leaderboard</a>
-      <span style="color:var(--muted);margin:0 .5rem;">·</span>
+      <span class="surf-flow-style-3">·</span>
       <a href="/commonwealth/live/" class="text-link">Watch live on TV</a>
-      <span style="color:var(--muted);margin:0 .5rem;">·</span>
+      <span class="surf-flow-style-4">·</span>
       <a href="/compute.html" class="text-link">Donate compute instead</a>
     </div>
   </section>
 
-  <section class="callout" style="margin-top:3rem;">
+  <section class="surf-flow-style-5 callout">
     <span class="kicker">Contest rules</span>
     <h2>Commonwealth Surf — Genesis Weekend</h2>
     <div class="rules-grid">
@@ -105,7 +107,7 @@
     </div>
   </section>
 
-  <section class="commonwealth-privacy" style="margin-top:1.5rem;">
+  <section class="surf-flow-style-6 commonwealth-privacy">
     <span class="kicker">Privacy & participation</span>
     <h2>Voluntary. Minimal data. You control it.</h2>
     <ul class="privacy-list">
@@ -125,6 +127,7 @@
   <div>Commonwealth.ai is a contained ScubaRC pilot. Nothing on this site constitutes medical, legal, therapeutic, operational, or investment advice.</div>
 </footer>
 <script src="/commonwealth/commonwealth.js" defer></script>
+<script src="/compute-config.js" defer></script>
 <script src="/commonwealth/surf/surf.js" defer></script>
 </body>
 </html>

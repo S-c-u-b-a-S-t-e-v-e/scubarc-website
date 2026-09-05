@@ -53,6 +53,55 @@
   const statusEl = document.getElementById('surf-status');
   const startBtn = document.getElementById('surf-start');
   const nicknameInput = document.getElementById('surf-nickname');
+  const config = window.SCUBARC_COMPUTE_CONFIG || {};
+  let humanToken = '';
+  let widgetId;
+
+  function hasCredential() {
+    return localStorage.getItem('scubarc_cc_node_id') && localStorage.getItem('scubarc_cc_node_token');
+  }
+
+  async function ensureCredential(nickname) {
+    if (hasCredential()) return;
+    if (!humanToken) {
+      if (!config.turnstileSiteKey) throw new Error('Human verification is unavailable. Please try again later.');
+      if (widgetId === undefined) {
+        statusEl.textContent = 'Complete human verification to start surfing.';
+        await new Promise((resolve, reject) => {
+          if (window.turnstile) return resolve();
+          const script = document.createElement('script');
+          script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+          script.onload = resolve;
+          script.onerror = () => reject(new Error('Human verification could not load. Please retry.'));
+          document.head.appendChild(script);
+        });
+        widgetId = window.turnstile.render('#surf-human-verification', {
+          sitekey: config.turnstileSiteKey,
+          callback: token => { humanToken = token; statusEl.textContent = 'Verification complete. Select Start Surfing.'; },
+          'expired-callback': () => { humanToken = ''; },
+          'error-callback': () => { humanToken = ''; statusEl.textContent = 'Human verification failed. Please retry.'; }
+        });
+      }
+      throw new Error('Complete human verification, then select Start Surfing.');
+    }
+    const response = await fetch(`${config.apiBase || '/api/compute'}/enroll`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        display_name: nickname,
+        consent_version: 'commonwealth-surf-v0',
+        turnstile_token: humanToken,
+        capabilities: { wasm_support: typeof WebAssembly === 'object', logical_processors: navigator.hardwareConcurrency || 1,
+          platform: navigator.platform, user_agent: navigator.userAgent, device_class: 'desktop', webgpu_support: false }
+      })
+    });
+    humanToken = '';
+    if (widgetId !== undefined) window.turnstile.reset(widgetId);
+    const credential = await response.json();
+    if (!response.ok || !credential.node_id || !credential.node_token) throw new Error('Browser verification failed. Please complete human verification again.');
+    localStorage.setItem('scubarc_cc_node_id', credential.node_id);
+    localStorage.setItem('scubarc_cc_node_token', credential.node_token);
+  }
 
   if (form) {
     form.addEventListener('submit', async (e) => {
@@ -75,6 +124,17 @@
       statusEl.textContent = '';
 
       const src = getSrc();
+
+      try {
+        await ensureCredential(nickname);
+      } catch (error) {
+        statusEl.textContent = error.message;
+        startBtn.disabled = false;
+        startBtn.textContent = 'START SURFING';
+        return;
+      }
+      sessionStorage.removeItem('commonwealth_run_id');
+      sessionStorage.removeItem('commonwealth_verified_distance');
 
       // Store nickname and src in sessionStorage for game page to pick up
       // SESSIONSTORAGE CONTRACT (for game worker):

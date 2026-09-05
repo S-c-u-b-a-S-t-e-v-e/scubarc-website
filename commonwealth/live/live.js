@@ -54,11 +54,13 @@
   const todayBest = document.getElementById('today-best');
 
   function formatDistance(miles) {
+    miles = Number(miles);
     if (typeof miles !== 'number' || !Number.isFinite(miles)) return '—';
     return miles.toFixed(2);
   }
 
   function formatDistanceShort(miles) {
+    miles = Number(miles);
     if (typeof miles !== 'number' || !Number.isFinite(miles)) return '—';
     return miles.toFixed(2) + ' mi';
   }
@@ -110,9 +112,9 @@
 
   function renderCurrentPlayer(data) {
     if (data && data.nickname) {
-      currentNickname.textContent = escapeHtml(data.nickname);
+      currentNickname.textContent = data.nickname;
       currentNickname.classList.remove('waiting');
-      if (typeof data.distance_miles === 'number' && Number.isFinite(data.distance_miles)) {
+      if (Number.isFinite(Number(data.distance_miles))) {
         currentDistance.textContent = formatDistanceShort(data.distance_miles);
         currentDistance.style.display = 'block';
       } else {
@@ -176,7 +178,7 @@
         });
         if (currentRes.ok) {
           const currentData = await currentRes.json();
-          renderCurrentPlayer(currentData);
+          renderCurrentPlayer(currentData.active_players?.[0] || null);
         }
       } catch {
         // Optional endpoint - ignore if not available
