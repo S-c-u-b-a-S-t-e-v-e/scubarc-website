@@ -37,7 +37,7 @@ async function main() {
           const path = new URL(route.request().url()).pathname;
           if (path === '/api/compute/game/start') {
             assert.equal(route.request().headers().authorization, 'Bearer fixture-token');
-            return route.fulfill({ json: { run_id: 'fixture-run', seed, remaining_ms: 600000, contest_day: '2026-09-05' } });
+            return route.fulfill({ json: { run_id: 'fixture-run', game_version: 'surf-0.2', client_version: 'cc-game-alpha-0.2', seed, remaining_ms: 600000, contest_day: '2026-09-05' } });
           }
           if (path === '/api/compute/game/result') {
             assert.equal(route.request().headers().authorization, 'Bearer fixture-token');
@@ -172,12 +172,12 @@ async function main() {
         // actual client outcomes to the unmodified authoritative server replay.
         seed = Array.from({ length: 10000 }, (_, i) => i).find(s => {
           const first = server.generateCourse(s)[0];
-          return first.lane === 2 && first.distance_cm * 2 === 74200;
+          return first.lane === 2 && first.distance_cm * 2 === 4800;
         });
-        assert.notEqual(seed, undefined, 'missing generated 74200ms lane-2 fixture');
+        assert.notEqual(seed, undefined, 'missing generated 4800ms lane-2 fixture');
         const generated = JSON.parse(JSON.stringify(server.generateCourse(seed)));
         const arrival = generated[0].distance_cm * 2;
-        assert.equal(arrival, 74200);
+        assert.equal(arrival, 4800);
         assert.equal(generated[0].lane, 2);
         const parity = async (name, inputs, frames, collisionIndex = null) => {
           await page.evaluate(() => window.laneTest.startGameRun());

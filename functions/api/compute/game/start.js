@@ -7,7 +7,7 @@ function getContestDay() {
 
 function generateDailySeed(contestDay) {
   let hash = 0;
-  const str = `surf-${contestDay}-genesis-2026`;
+  const str = `surf-0.2-${contestDay}-genesis-2026`;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
     hash = hash & hash;
@@ -35,24 +35,29 @@ export async function onRequestPost({ request, env }) {
       "UPDATE game_runs SET status = 'expired' WHERE node_id = ?1 AND game_type = 'surf' AND status = 'active' AND expires_at <= ?2"
     ).bind(node.node_id, nowIso).run();
 
+    // Retire prior rules without deleting historical runs or scores.
+    await env.COMMUNITY_DB.prepare(
+      "UPDATE game_runs SET status = 'rejected' WHERE node_id = ?1 AND game_type = 'surf' AND status = 'active' AND game_version != 'surf-0.2'"
+    ).bind(node.node_id).run();
+
     const existingRun = await env.COMMUNITY_DB.prepare(
-      `SELECT run_id, seed, status, expires_at FROM game_runs
+      `SELECT run_id, seed, game_version, status, expires_at FROM game_runs
        WHERE node_id = ?1 AND status = 'active' AND expires_at > ?2 AND game_type = 'surf'
        ORDER BY created_at DESC LIMIT 1`
     ).bind(node.node_id, nowIso).first();
 
     if (existingRun) {
-      if (existingRun.seed !== seed) {
+      if (existingRun.seed !== seed || existingRun.game_version !== "surf-0.2") {
         await env.COMMUNITY_DB.prepare("UPDATE game_runs SET status = 'rejected' WHERE run_id = ?1").bind(existingRun.run_id).run();
       } else {
         return json({
           run_id: existingRun.run_id,
           seed: existingRun.seed,
           contest_day: contestDay,
-          game_version: "surf-0.1",
+          game_version: "surf-0.2",
           expires_at: existingRun.expires_at,
           remaining_ms: Math.max(0, Date.parse(existingRun.expires_at) - Date.now()),
-          client_version: "cc-game-alpha-0.1",
+          client_version: "cc-game-alpha-0.2",
           reused: true
         });
       }
@@ -62,14 +67,14 @@ export async function onRequestPost({ request, env }) {
     await env.COMMUNITY_DB.prepare(
       `INSERT INTO game_runs
        (run_id, node_id, contributor_id, created_at, expires_at, game_type, game_version, contest_day, seed, status)
-       SELECT ?1, ?2, ?3, ?4, ?5, 'surf', 'surf-0.1', ?6, ?7, 'active'
+       SELECT ?1, ?2, ?3, ?4, ?5, 'surf', 'surf-0.2', ?6, ?7, 'active'
        WHERE NOT EXISTS (SELECT 1 FROM game_runs WHERE node_id = ?2 AND game_type = 'surf'
-         AND status = 'active' AND expires_at > ?4 AND seed = ?7)`
+         AND status = 'active' AND game_version = 'surf-0.2' AND expires_at > ?4 AND seed = ?7)`
     ).bind(runId, node.node_id, node.contributor_id, nowIso, expires, contestDay, seed).run();
 
     const activeRun = await env.COMMUNITY_DB.prepare(
       `SELECT run_id, expires_at FROM game_runs WHERE node_id = ?1 AND game_type = 'surf'
-       AND status = 'active' AND expires_at > ?2 AND seed = ?3 ORDER BY created_at DESC LIMIT 1`
+       AND status = 'active' AND game_version = 'surf-0.2' AND expires_at > ?2 AND seed = ?3 ORDER BY created_at DESC LIMIT 1`
     ).bind(node.node_id, nowIso, seed).first();
     if (!activeRun) return json({ error: "game_start_failed" }, 400);
 
@@ -77,11 +82,11 @@ export async function onRequestPost({ request, env }) {
       run_id: activeRun.run_id,
       seed,
       contest_day: contestDay,
-      game_version: "surf-0.1",
+      game_version: "surf-0.2",
       expires_at: activeRun.expires_at,
       remaining_ms: Math.max(0, Date.parse(activeRun.expires_at) - Date.now()),
       reused: activeRun.run_id !== runId,
-      client_version: "cc-game-alpha-0.1"
+      client_version: "cc-game-alpha-0.2"
     });
   } catch (_) {
     return json({ error: "game_start_failed" }, 400);

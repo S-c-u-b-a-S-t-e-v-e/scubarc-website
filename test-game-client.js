@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 async function scenario(remaining, delay, trigger) {
   let clock = 100, timer, frame, submitted, submits = 0;
-  const element = { classList: { toggle() {}, remove() {} }, getContext: () => ({}), addEventListener() {}, querySelector() { return this; } };
+  const element = { classList: { toggle() {}, remove() {} }, getContext: () => new Proxy({}, { get: (_, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : () => {} }), addEventListener() {}, querySelector() { return this; } };
   const storage = { getItem: key => ({ scubarc_cc_node_id: 'fixture', scubarc_cc_node_token: 'token', commonwealth_nickname: 'Test' }[key] || ''), setItem() {} };
   const context = {
     window: { devicePixelRatio: 1 }, document: { readyState: 'loading', getElementById: () => element, addEventListener() {} },
@@ -12,7 +12,7 @@ async function scenario(remaining, delay, trigger) {
     setTimeout: (fn, ms) => { timer = { fn, ms }; return 1; }, clearTimeout() {},
     requestAnimationFrame: fn => { frame = fn; return 1; }, cancelAnimationFrame() {},
     fetch: async (url, opts) => {
-      if (url.endsWith('/game/start')) { clock += delay; return { ok: true, json: async () => ({ run_id: 'run', seed: 42, remaining_ms: remaining, expires_at: '2000-01-01', reused: remaining < 600000 }) }; }
+      if (url.endsWith('/game/start')) { clock += delay; return { ok: true, json: async () => ({ run_id: 'run', game_version: 'surf-0.2', client_version: 'cc-game-alpha-0.2', seed: 42, remaining_ms: remaining, expires_at: '2000-01-01', reused: remaining < 600000 }) }; }
       submits++; submitted = JSON.parse(opts.body);
       return { ok: true, json: async () => ({ distance_miles: '0.00', leaderboard: {} }) };
     }

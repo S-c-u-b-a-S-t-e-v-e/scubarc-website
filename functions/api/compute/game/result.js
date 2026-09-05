@@ -7,7 +7,7 @@ function getContestDay() {
 
 function generateDailySeed(contestDay) {
   let hash = 0;
-  const str = `surf-${contestDay}-genesis-2026`;
+  const str = `surf-0.2-${contestDay}-genesis-2026`;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
     hash = hash & hash;
@@ -20,11 +20,11 @@ function generateCourse(seed) {
   const random = mulberry32(seed);
   let distanceCm = 0;
   const maxObstacles = 500;
-  const baseGap = 200;
+  const baseGap = 15;
   
   for (let i = 0; i < maxObstacles; i++) {
     const lane = Math.floor(random() * 3);
-    const gap = baseGap + Math.floor(random() * 300);
+    const gap = baseGap + Math.floor(random() * 16);
     distanceCm += gap * 100;
     const type = Math.floor(random() * 3);
     obstacles.push({
@@ -121,7 +121,7 @@ export async function onRequestPost({ request, env }) {
 
     if (!run) return json({ error: "run_not_found" }, 404);
     if (run.node_id !== node.node_id) return json({ error: "run_node_mismatch" }, 403);
-    if (run.game_type !== "surf" || run.game_version !== "surf-0.1") return json({ error: "invalid_game_version" }, 400);
+    if (run.game_type !== "surf" || run.game_version !== "surf-0.2") return json({ error: "invalid_game_version" }, 400);
     if (run.contest_day !== contestDay) return json({ error: "contest_day_mismatch" }, 400);
     if (run.seed !== dailySeed) return json({ error: "seed_mismatch" }, 400);
     if (run.status !== "active") return json({ error: "run_not_active" }, 409);

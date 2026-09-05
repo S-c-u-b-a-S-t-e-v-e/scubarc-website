@@ -13,13 +13,21 @@ const { execFileSync } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const base = process.env.TEST_URL || 'http://127.0.0.1:8788';
 const persist = process.env.GAME_TEST_PERSIST;
+const fixtureCwd = process.env.GAME_TEST_CWD;
+assert(fixtureCwd, 'Set GAME_TEST_CWD to the temporary Wrangler config directory');
+const path = require('node:path');
+for (const dir of [persist, fixtureCwd]) {
+  const relative = path.relative(require('node:os').tmpdir(), path.resolve(dir || '.'));
+  assert(relative && !relative.startsWith('..') && !path.isAbsolute(relative), 'D1 fixtures must be under TEMP');
+}
+assert(['127.0.0.1', 'localhost', '[::1]'].includes(new URL(base).hostname), 'Fixtures require a local server');
 const wrangler = process.env.GAME_TEST_WRANGLER || `${process.env.APPDATA}/npm/node_modules/wrangler/bin/wrangler.js`;
 assert(persist, 'Set GAME_TEST_PERSIST to the local Pages --persist-to directory');
 const evidence = {}, accepted = [];
 function record(name, data) { evidence[name] = data; console.log(name, JSON.stringify(data)); }
 // Fixture changes use supported local Wrangler commands exclusively.
 function sql(query) {
-  return JSON.parse(execFileSync(process.execPath, [wrangler, 'd1', 'execute', 'COMMUNITY_DB', '--local', '--persist-to', persist, '--command', query, '--json'], { encoding: 'utf8', windowsHide: true }))[0].results;
+  return JSON.parse(execFileSync(process.execPath, [wrangler, 'd1', 'execute', 'COMMUNITY_DB', '--local', '--persist-to', persist, '--command', query, '--json'], { encoding: 'utf8', windowsHide: true, cwd: fixtureCwd }))[0].results;
 }
 async function request(path, body, token) {
   const r = await fetch(base + '/api/compute' + path, body === undefined ? {} : {
@@ -45,8 +53,9 @@ async function main() {
     const bc = JSON.parse(JSON.stringify(browser.generateCourse(seed))).map(o => ({ ...o, type: ['buoy', 'rock', 'debris'].indexOf(o.type) }));
     assert.deepEqual(sc, bc);
     let prior = 0;
-    for (const o of sc) { assert([0, 1, 2].includes(o.lane)); assert(o.distance_cm - prior >= 20000 && o.distance_cm - prior <= 49900); prior = o.distance_cm; }
-    assert(prior > 2000000 && prior <= 2049900);
+    for (const o of sc) { assert([0, 1, 2].includes(o.lane)); assert(o.distance_cm - prior >= 1500 && o.distance_cm - prior <= 3000); prior = o.distance_cm; }
+    assert.equal(sc.length, 500);
+    assert(prior >= 750000 && prior <= 1500000);
   }
   const collisionCourse = [{ distance_cm: 500, lane: 0 }, { distance_cm: 1000, lane: 1 }, { distance_cm: 1500, lane: 2 }];
   assert.equal(server.simulateSurfRun(collisionCourse, log(500)).distanceCm, 250);
@@ -61,6 +70,29 @@ async function main() {
   const id = `r02_${Date.now()}`, token = id + '_local_fixture';
   const hash = createHash('sha256').update(token).digest('hex'), now = new Date().toISOString();
   sql(`INSERT INTO contributors(contributor_id,created_at,consent_version) VALUES('${id}','${now}','test'); INSERT INTO nodes(node_id,contributor_id,created_at,last_seen,logical_processors,wasm_support,webgpu_support,device_class,token_hash,status) VALUES('${id}','${id}','${now}','${now}',4,1,0,'desktop','${hash}','active');`);
+  // Same seed as current rules: isolation must depend on version, not just seed.
+  const startSource = fs.readFileSync('functions/api/compute/game/start.js', 'utf8');
+  const seedFns = vm.runInNewContext(startSource.slice(startSource.indexOf('function getContestDay'), startSource.indexOf('export async')) + '; ({generateDailySeed})');
+  const day = now.slice(0, 10), currentSeed = seedFns.generateDailySeed(day);
+  const oldRun = id + '_old', oldActive = id + '_old_active';
+  const expires = new Date(Date.now() + 600000).toISOString();
+  sql(`INSERT INTO game_runs(run_id,node_id,contributor_id,created_at,completed_at,expires_at,game_type,game_version,contest_day,seed,status,server_score,distance_cm) VALUES('${oldRun}','${id}','${id}','${now}','${now}','${expires}','surf','surf-0.1','${day}',${currentSeed},'completed',9999999,9999999);
+    INSERT INTO leaderboard(entry_id,run_id,contributor_id,nickname,game_type,contest_day,server_score,achieved_at) VALUES('${oldRun}','${oldRun}','${id}','HISTORICAL_R05','surf','${day}',9999999,'${now}');
+    INSERT INTO game_runs(run_id,node_id,contributor_id,created_at,expires_at,game_type,game_version,contest_day,seed,status) VALUES('${oldActive}','${id}','${id}','${now}','${expires}','surf','surf-0.1','${day}',${currentSeed},'active');`);
+  const before = await request('/live/current'); assert.equal(before.status, 200);
+  assert(!before.data.active_players.some(p => p.run_id === oldActive));
+  assert(!before.data.recent_completions.some(p => p.run_id === oldRun));
+  assert.equal(before.data.current_leader, null);
+  const oldResult = await request('/game/result', {node_id: id, run_id: oldActive, events: log(1000)}, token);
+  assert.equal(oldResult.data.error, 'invalid_game_version');
+  for (const tab of ['today', 'week', 'all']) {
+    const b = await request('/leaderboard?tab=' + tab); assert.equal(b.status, 200);
+    assert.deepEqual(b.data.entries, []);
+    assert.deepEqual(b.data.stats, {players_today:0, runs_today:0, best_distance_miles:'0.00'});
+  }
+  const emptyStats = await request('/leaderboard/stats'); assert.equal(emptyStats.status, 200);
+  assert.deepEqual(emptyStats.data, {players_today:0, runs_today:0, best_distance_miles:'0.00'});
+  record('OLD_VERSION_ISOLATION_EMPTY', {pass:true, old_run:oldRun, old_active:oldActive});
   const start = () => request('/game/start', { node_id: id }, token);
   const submit = (run, events) => request('/game/result', { node_id: id, run_id: run.run_id, events, nickname: id }, token);
   const concurrent = await Promise.all(Array.from({ length: 10 }, start));
@@ -69,6 +101,10 @@ async function main() {
   assert.equal(sql(`SELECT COUNT(*) AS n FROM game_runs WHERE node_id='${id}' AND status='active'`)[0].n, 1);
   record('TRUE_CONCURRENT_START', { pass: true, requests: 10, unique_runs: 1, newly_created: 1 });
   const first = concurrent[0].data;
+  assert.equal(first.game_version, 'surf-0.2'); assert.equal(first.client_version, 'cc-game-alpha-0.2');
+  assert.equal(first.seed, currentSeed); assert.notEqual(first.run_id, oldActive);
+  assert.equal(sql(`SELECT status FROM game_runs WHERE run_id='${oldActive}'`)[0].status, 'rejected');
+  record('VERSION_ROLLOVER', {pass:true, game_version:first.game_version, client_version:first.client_version});
   await new Promise(r => setTimeout(r, 1100));
   const reused = await start(); assert.equal(reused.data.run_id, first.run_id); assert(reused.data.remaining_ms < first.remaining_ms);
   record('ACTIVE_REUSE', { pass: true, remaining_ms: reused.data.remaining_ms });
@@ -127,7 +163,23 @@ async function main() {
   const board = await request('/leaderboard'); assert.equal(board.status, 200); assert(board.data.entries.some(e => e.nickname === id)); assert.equal(board.data.stats.best_distance_miles, '1.86'); record('LEADERBOARD', board);
   const stats = await request('/leaderboard/stats'); assert.equal(stats.status, 200); assert.deepEqual(stats.data, board.data.stats); record('STATS', stats);
   const active = await start(), live = await request('/live/current'); assert.equal(live.status, 200); assert(live.data.active_players.some(p => p.run_id === active.data.run_id)); assert(live.data.recent_completions.some(p => p.run_id === short.run.run_id)); assert.equal(live.data.current_leader.distance_miles, '1.86'); record('LIVE', live);
-  const invalidRows = sql(`SELECT COUNT(*) AS n FROM game_runs WHERE node_id='${id}' AND status='completed' AND (duration_ms < 0 OR duration_ms > 600000 OR distance_cm < 0 OR distance_cm != duration_ms * 0.5)`);
+  function noGeography(value) {
+    if (!value || typeof value !== 'object') return;
+    for (const [key, child] of Object.entries(value)) {
+      assert(!['virginia','virginia_opt_in','locality'].includes(key)); noGeography(child);
+    }
+  }
+  for (const tab of ['today', 'week', 'all']) {
+    const b = await request('/leaderboard?tab=' + tab); assert.equal(b.status, 200);
+    assert(!b.data.entries.some(e => e.nickname === 'HISTORICAL_R05')); noGeography(b.data);
+    assert.equal(b.data.stats.runs_today, sql(`SELECT COUNT(*) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id=l.run_id WHERE gr.game_version='surf-0.2'`)[0].n);
+  }
+  noGeography(live.data);
+  assert(!live.data.recent_completions.some(p => p.run_id === oldRun));
+  assert.notEqual(live.data.current_leader.nickname, 'HISTORICAL_R05');
+  assert.equal(sql(`SELECT COUNT(*) AS n FROM leaderboard WHERE run_id='${oldRun}'`)[0].n, 1);
+  record('OLD_SCORE_ISOLATION_AND_PUBLIC_PRIVACY', {pass:true, history_preserved:true});
+  const invalidRows = sql(`SELECT COUNT(*) AS n FROM game_runs WHERE node_id='${id}' AND game_version='surf-0.2' AND status='completed' AND (duration_ms < 0 OR duration_ms > 600000 OR distance_cm < 0 OR distance_cm != duration_ms * 0.5)`);
   assert.equal(invalidRows[0].n, 0);
   record('PERSISTED_SCORE_BOUNDS', { pass: true, invalid_rows: 0 });
   record('MAX_ACCEPTED', { duration_ms: Math.max(...accepted.map(d => d.duration_ms)), distance_cm: Math.max(...accepted.map(d => d.distance_cm)), distance_miles: Math.max(...accepted.map(d => Number(d.distance_miles))) });

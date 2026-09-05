@@ -68,7 +68,7 @@
 
   function generateDailySeed(contestDay) {
     let hash = 0;
-    const str = `surf-${contestDay}-genesis-2026`;
+    const str = `surf-0.2-${contestDay}-genesis-2026`;
     for (let i = 0; i < str.length; i++) {
       hash = ((hash << 5) - hash) + str.charCodeAt(i);
       hash = hash & hash;
@@ -90,11 +90,11 @@
     const random = mulberry32(seed);
     let distanceCm = 0;
     const maxObstacles = 500;
-    const baseGap = 200;
+    const baseGap = 15;
 
     for (let i = 0; i < maxObstacles; i++) {
       const lane = Math.floor(random() * 3);
-      const gap = baseGap + Math.floor(random() * 300);
+      const gap = baseGap + Math.floor(random() * 16);
       distanceCm += gap * 100;
       const type = Math.floor(random() * 3);
       obstacles.push({
@@ -185,6 +185,7 @@
         headers: { Authorization: `Bearer ${nodeToken}` },
         body: JSON.stringify({ node_id: nodeId })
       });
+      if (run.game_version !== "surf-0.2") throw new Error("unexpected_game_version");
       if (!Number.isFinite(run.remaining_ms) || run.remaining_ms < 0) throw new Error("invalid_run_lifetime");
       playableMs = Math.max(0, Math.floor(run.remaining_ms - (performance.now() - requestStarted) - 5000));
       currentRun = run;
@@ -200,6 +201,9 @@
       gameState = "playing";
       gameOverlay.hidden = true;
       gameUI.hidden = false;
+      // Populate and draw the nearby course before the first animation callback.
+      update(0);
+      render();
       updateHUD();
       expiryTimer = setTimeout(() => endRun("timeout"), playableMs);
       requestAnimationFrame(gameLoop);
@@ -239,7 +243,7 @@
     surfer.lane = surfer.targetLane;
     surfer.x = (canvas.width / dpr) / LANES * (surfer.lane + 0.5) - surfer.width / 2;
 
-    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
+    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 6000);
 
     // An obstacle arrives at the rendered surfer center at its course distance.
     // Check the swept distance so a delayed frame cannot skip an arrival.
@@ -258,7 +262,7 @@
         }
         if (collisionLane === obstacle.lane) {
           distanceCm = obstacle.distance_cm;
-          obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
+          obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 6000);
           endRun("collision");
           return;
         }
@@ -324,7 +328,7 @@
 
   function drawObstacles(cw, ch) {
     for (const obstacle of obstacles) {
-      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * (surfer.y / 50000);
+      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * (surfer.y / 6000);
       if (screenY < -50 || screenY > ch + 50) continue;
 
       const laneX = (cw / LANES) * (obstacle.lane + 0.5);
@@ -471,7 +475,7 @@
     const session = readSessionStorage();
     const nickname = session.nickname || "";
     if (!nickname) {
-      resultNote.textContent = "No nickname found. Return to surf.html to set one.";
+      resultNote.textContent = "No nickname found. Return to /commonwealth/surf/ to set one.";
       return;
     }
 
