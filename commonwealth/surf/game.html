@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Commonwealth Surf — Game</title>
+  <meta name="description" content="Commonwealth Surf — Virginia Beach themed endless avoidance game. Built by the Commonwealth." />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <link rel="stylesheet" href="../../style.css" />
+  <link rel="stylesheet" href="../../compute.css" />
+  <link rel="stylesheet" href="../../surf.css" />
+  <link rel="stylesheet" href="game.css" />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="../../index.html" aria-label="Scuba Research Collective home"><span>SCUBA RESEARCH COLLECTIVE</span></a>
+  <nav aria-label="Primary navigation">
+    <a href="../../index.html">Home</a>
+    <a href="../../mission.html">Mission</a>
+    <a href="../../research.html">Research</a>
+    <a href="../../public-benefit.html">Public Benefit</a>
+    <a href="../../compute.html" aria-current="page">Community Compute</a>
+    <a href="../../foundation.html">Foundation</a>
+    <a href="../../governance.html">Governance</a>
+    <a href="../../contact.html">Contact</a>
+  </nav>
+</header>
+
+<main id="main-content">
+  <div class="game-container">
+    <canvas id="surf-canvas" aria-label="Commonwealth Surf game canvas"></canvas>
+    <div class="game-ui" id="game-ui" hidden>
+      <div class="hud">
+        <span id="hud-distance">0.00 mi</span>
+        <span id="hud-contest" class="contest-badge"></span>
+      </div>
+      <div class="lane-indicators" aria-hidden="true">
+        <div class="lane-indicator" data-lane="0"></div>
+        <div class="lane-indicator active" data-lane="1"></div>
+        <div class="lane-indicator" data-lane="2"></div>
+      </div>
+    </div>
+    <div class="game-overlay" id="game-overlay">
+      <div class="overlay-content" id="overlay-content">
+        <h2>COMMONWEALTH SURF</h2>
+        <p class="subtitle">Built by the Commonwealth</p>
+        <form id="nickname-form" class="nickname-form" hidden>
+          <label>
+            Nickname for leaderboard (max 24 chars)
+            <input type="text" id="nickname-input" maxlength="24" autocomplete="nickname" required />
+          </label>
+          <button type="submit" class="button primary">Submit Score</button>
+        </form>
+        <div id="result-display" hidden>
+          <div class="result-distance" id="result-distance">0.00 miles</div>
+          <div class="result-reason" id="result-reason"></div>
+          <p class="muted-text" id="result-note"></p>
+        </div>
+        <div class="overlay-actions">
+          <button class="button primary" id="play-again">Play Again</button>
+          <a class="button" id="view-leaderboard" href="#">View Leaderboard</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div><strong>Scuba Research Collective</strong><br />Veteran-founded research organization. Motto: <em>E malicia ad fulmina</em>.</div>
+  <div>This site is operated by Scuba Research Collective LLC. Scuba Research Collective Foundation is in formation as a separate public-benefit entity.</div>
+  <div>Commonwealth Surf participation is voluntary. Close the page to stop.</div>
+</footer>
+<script src="../../compute-config.js"></script>
+<script src="game.js" defer></script>
+</body>
+</html>

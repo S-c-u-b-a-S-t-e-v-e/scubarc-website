@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Community Compute — Scuba Research Collective</title>
+  <meta name="description" content="Contribute idle computing capacity to ScubaRC public-interest research through the Community Compute Alpha." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="compute.css" />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="index.html" aria-label="Scuba Research Collective home"><span>SCUBA RESEARCH COLLECTIVE</span></a>
+  <nav aria-label="Primary navigation">
+    <a href="index.html">Home</a>
+    <a href="mission.html">Mission</a>
+    <a href="research.html">Research</a>
+    <a href="public-benefit.html">Public Benefit</a>
+    <a href="compute.html" aria-current="page">Community Compute</a>
+    <a href="foundation.html">Foundation</a>
+    <a href="governance.html">Governance</a>
+    <a href="contact.html">Contact</a>
+  </nav>
+</header>
+
+<main id="main-content">
+  <section class="page-hero compute-hero">
+    <span class="eyebrow">Community Compute Alpha</span>
+    <h1>Built by the Commonwealth.</h1>
+    <p class="lead">Turn a few minutes of idle computing power into governed research capacity. Your device receives one bounded work unit, computes locally in the browser, and returns only a constrained result receipt for verification.</p>
+    <div class="actions">
+          <a class="button primary" href="#contribute">Contribute compute</a>
+          <a class="button" href="surf.html">Play Commonwealth Surf</a>
+          <a class="button" href="#how-it-works">How it works</a>
+        </div>
+    <p class="compute-trust-line">No arbitrary file uploads. No shell access. No access to your personal files. Stop by closing the page.</p>
+  </section>
+
+  <section aria-labelledby="cohort-heading">
+    <div class="section-heading">
+      <span class="kicker">Founding cohort</span>
+      <h2 id="cohort-heading">A live test of community-powered research infrastructure.</h2>
+    </div>
+    <div class="stat-grid" id="compute-stats" aria-live="polite">
+      <div class="stat-card"><strong id="stat-contributors">—</strong><span>contributors enrolled</span></div>
+      <div class="stat-card"><strong id="stat-nodes">—</strong><span>devices registered</span></div>
+      <div class="stat-card"><strong id="stat-threads">—</strong><span>logical CPU threads</span></div>
+      <div class="stat-card"><strong id="stat-verified">—</strong><span>verified work units</span></div>
+      <div class="stat-card"><strong id="stat-hours">—</strong><span>compute hours contributed</span></div>
+    </div>
+  </section>
+
+  <section class="split" id="contribute">
+    <div>
+      <span class="kicker">Contribute now</span>
+      <h2>Run one safe Alpha work unit.</h2>
+      <p>The Alpha uses a fixed browser workload. It does not download arbitrary executable code. You choose when to start, and computation ends when the work unit completes or you stop the page.</p>
+      <div class="device-readout" id="device-readout" aria-live="polite"></div>
+    </div>
+    <form class="compute-form" id="compute-form">
+      <label>
+              Display name <span class="muted-text">(optional)</span>
+              <input type="text" name="display_name" maxlength="80" autocomplete="name" />
+            </label>
+            <label>
+              Virginia locality <span class="muted-text">(optional)</span>
+              <input type="text" name="locality" maxlength="100" placeholder="Virginia Beach, Richmond, Roanoke…" />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" name="virginia_opt_in" />
+              <span>I am currently participating from Virginia.</span>
+            </label>
+      <label class="checkbox-row required-row">
+        <input type="checkbox" name="consent" required />
+        <span>I understand this is voluntary, may use electricity, is not represented as a charitable tax deduction, and I may stop at any time.</span>
+      </label>
+      <div id="turnstile-slot"></div>
+      <button class="button primary compute-start" type="submit" id="compute-start">Start my first work unit</button>
+      <p class="form-status" id="compute-status" role="status"></p>
+    </form>
+  </section>
+
+  <section id="work-panel" class="work-panel" hidden aria-labelledby="work-heading">
+    <span class="kicker">Work unit</span>
+    <h2 id="work-heading">Your computer is contributing.</h2>
+    <div class="progress-track" aria-hidden="true"><div class="progress-bar" id="compute-progress"></div></div>
+    <p id="work-detail">Preparing bounded work…</p>
+    <div class="receipt-card" id="receipt-card" hidden></div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="section-heading">
+      <span class="kicker">How it works</span>
+      <h2>Compute is contributed. Authority is not.</h2>
+    </div>
+    <div class="card-grid three">
+      <article class="card"><span class="status">1</span><h3>Register capability</h3><p>The browser reports a small capability profile such as logical processors and supported web features. ScubaRC does not inspect personal files.</p></article>
+      <article class="card"><span class="status">2</span><h3>Receive bounded work</h3><p>The task governor issues a constrained Work Envelope with a work ID, fixed task type, input, resource limit, and expiration.</p></article>
+      <article class="card"><span class="status">3</span><h3>Return a receipt</h3><p>The node returns a small structured result. The server validates the receipt before counting it as verified research work.</p></article>
+    </div>
+  </section>
+
+  <section class="callout">
+    <span class="kicker">Alpha boundary</span>
+    <h2>This is a research infrastructure demonstration.</h2>
+    <p>Community Compute Alpha is intentionally constrained to harmless public test workloads. It does not process classified, CUI, medical, private, or other sensitive research data. Volunteer devices are treated as untrusted execution nodes; returned results are candidates until independently verified.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div><strong>Scuba Research Collective</strong><br />Veteran-founded research organization. Motto: <em>E malicia ad fulmina</em>.</div>
+  <div>This site is operated by Scuba Research Collective LLC. Scuba Research Collective Foundation is in formation as a separate public-benefit entity.</div>
+  <div>Community Compute participation is voluntary. Contributors control whether and when their devices perform Alpha work.</div>
+</footer>
+<script src="compute-config.js"></script>
+<script src="compute.js" defer></script>
+</body>
+</html>
