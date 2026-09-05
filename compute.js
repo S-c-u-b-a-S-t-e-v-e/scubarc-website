@@ -82,10 +82,10 @@
       const worker = new Worker("compute-worker.js");
       worker.onmessage = (event) => {
         if (event.data?.type === "progress") {
-          progress.style.width = `${event.data.percent}%`;
+          progress.value = event.data.percent;
           workDetail.textContent = `Running ${envelope.work_id} — ${event.data.percent}%`;
         } else if (event.data?.type === "result") {
-          progress.style.width = "100%";
+          progress.value = 100;
           worker.terminate();
           resolve(event.data);
         } else if (event.data?.type === "error") {
@@ -138,7 +138,7 @@
 
     workPanel.hidden = false;
     receiptCard.hidden = true;
-    progress.style.width = "0%";
+    progress.value = 0;
     workPanel.scrollIntoView({ behavior: "smooth", block: "center" });
     workDetail.textContent = `Running ${work.work_id}…`;
 

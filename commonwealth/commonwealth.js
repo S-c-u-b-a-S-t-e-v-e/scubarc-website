@@ -68,7 +68,7 @@
         overlay.classList.remove('open');
         toggle.setAttribute('aria-expanded', 'false');
         overlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
+        document.body.classList.remove('nav-open');
       }
 
       function openNav() {
@@ -76,7 +76,7 @@
         overlay.classList.add('open');
         toggle.setAttribute('aria-expanded', 'true');
         overlay.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('nav-open');
       }
 
       function toggleNav() {

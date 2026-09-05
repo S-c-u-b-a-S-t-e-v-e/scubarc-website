@@ -442,7 +442,7 @@
 
     resultDistance.textContent = (distanceCm / 160934.4).toFixed(2) + " miles";
     resultReason.textContent = reason === "collision" ? "CRASH" : reason === "course_complete" ? "COURSE COMPLETE" : "RUN ENDED";
-    resultReason.style.color = reason === "collision" ? "#f87171" : "#4ecdc4";
+    resultReason.classList.toggle("collision", reason === "collision");
     resultNote.textContent = "Submitting run to server for verification...";
     playAgainBtn.disabled = true;
     resultDisplay.hidden = false;
@@ -546,7 +546,7 @@
     if (session.verifiedDistance && session.runId) {
       resultDistance.textContent = session.verifiedDistance + " miles";
       resultReason.textContent = "VERIFIED";
-      resultReason.style.color = "#4ecdc4";
+      resultReason.classList.remove("collision");
       resultNote.textContent = "Previously verified run. Play again to start a fresh run.";
       resultDisplay.hidden = false;
       gameOverlay.hidden = false;

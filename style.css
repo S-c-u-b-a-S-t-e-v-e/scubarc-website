@@ -197,3 +197,8 @@ nav a[aria-current="page"] {
     white-space: normal;
   }
 }
+
+/* Lock scrolling only while mobile navigation is open. */
+@media(max-width:880px){body.nav-open{overflow:hidden}}
+@media(max-width:560px){.card-grid.three{grid-template-columns:1fr}}
+.card a{overflow-wrap:anywhere}

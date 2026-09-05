@@ -667,3 +667,18 @@
 .surf-flow-style-9 { margin-top:1.5rem; }
 
 #leaderboard-container { max-width: 100%; overflow-x: auto; }
+
+/* Scope spectator layout to Live; ordinary Commonwealth pages keep their layout. */
+main.live-main { width:100%; max-width:none; margin:0; }
+.live-main section { margin-top:0; }
+.live-main .live-today { margin-top:1rem; }
+.live-main > *, .live-current > * { min-width:0; }
+.live-main .nickname { overflow-wrap:anywhere; }
+.live-leaderboard-item { grid-template-columns:auto minmax(0,1fr) auto; }
+.live-leaderboard-item .exhibition { font-size:.6rem; }
+.leaderboard-footnote td { font-size:.75rem; color:var(--muted); padding-top:.5rem; }
+.compute-explain { margin-top:3rem; }
+.compute-boundary { margin-top:2rem; }
+@media(max-width:880px) {
+  .compute-explain, .compute-explain .card-grid.three { grid-template-columns:1fr; }
+}

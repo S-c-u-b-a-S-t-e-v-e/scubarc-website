@@ -103,7 +103,7 @@
       div.className = 'live-leaderboard-item' + (entry.exhibition ? ' exhibition-row' : '');
       div.innerHTML = `
         <span class="rank">${entry.rank || i + 1}</span>
-        <span class="nickname">${escapeHtml(entry.nickname)}${entry.exhibition ? ' <span class="exhibition" style="font-size:.6rem;">EXH</span>' : ''}</span>
+        <span class="nickname">${escapeHtml(entry.nickname)}${entry.exhibition ? ' <span class="exhibition">EXH</span>' : ''}</span>
         <span class="distance">${formatDistanceShort(entry.distance_miles)}</span>
       `;
       liveLeaderboard.appendChild(div);
@@ -116,14 +116,14 @@
       currentNickname.classList.remove('waiting');
       if (Number.isFinite(Number(data.distance_miles))) {
         currentDistance.textContent = formatDistanceShort(data.distance_miles);
-        currentDistance.style.display = 'block';
+        currentDistance.hidden = false;
       } else {
-        currentDistance.style.display = 'none';
+        currentDistance.hidden = true;
       }
     } else {
       currentNickname.textContent = 'Waiting for player…';
       currentNickname.classList.add('waiting');
-      currentDistance.style.display = 'none';
+      currentDistance.hidden = true;
     }
   }
 

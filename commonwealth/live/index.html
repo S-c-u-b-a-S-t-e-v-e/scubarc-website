@@ -18,46 +18,7 @@
   <meta name="twitter:title" content="Commonwealth Surf — Live" />
   <meta name="twitter:description" content="Live TV display. Current player, top 5, today's stats." />
   
-  <style>
-    /* Inline critical styles for immediate render */
-    .live-page { min-height: 100vh; display: flex; flex-direction: column; background: radial-gradient(circle at 15% 0%, rgba(31, 59, 90, .35), transparent 30rem), var(--bg); }
-    .live-header { padding: clamp(1rem, 2vw, 1.5rem) clamp(1.5rem, 3vw, 3rem); border-bottom: 2px solid var(--gold); text-align: center; }
-    .live-header .title { font-size: clamp(1.8rem, 4vw, 3.5rem); font-weight: 800; letter-spacing: -.02em; margin: 0 0 .25rem; }
-    .live-header .subtitle { font-size: clamp(1rem, 2vw, 1.5rem); color: var(--gold-soft); text-transform: uppercase; letter-spacing: .15em; font-weight: 700; margin: 0; }
-    .live-main { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 3vw, 3rem); padding: clamp(1.5rem, 3vw, 3rem); align-items: start; }
-    .live-current { display: flex; flex-direction: column; gap: 1rem; }
-    .live-current-player { padding: 1.5rem; border: 2px solid var(--gold); border-radius: var(--radius); background: linear-gradient(145deg, rgba(16, 35, 60, .95), rgba(5, 11, 17, .96)); text-align: center; }
-    .live-current-player .label { font-size: clamp(.8rem, 1.5vw, 1rem); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; margin-bottom: .5rem; }
-    .live-current-player .nickname { font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 800; color: var(--gold-soft); margin: .5rem 0; }
-    .live-current-player .distance { font-size: clamp(1.5rem, 3vw, 2.5rem); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--text); }
-    .live-current-player .waiting { color: var(--muted); font-size: clamp(1rem, 2vw, 1.5rem); }
-    .live-qr { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 1.5rem; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(255, 255, 255, .025); }
-    .live-qr .label { font-size: clamp(.8rem, 1.5vw, 1rem); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
-    .live-qr img { width: clamp(180px, 30vw, 280px); height: auto; border-radius: 12px; background: white; padding: 1rem; }
-    .live-leaderboard { display: flex; flex-direction: column; gap: 1rem; }
-    .live-leaderboard h2 { font-size: clamp(1.3rem, 2.5vw, 1.8rem); margin: 0 0 .5rem; color: var(--gold-soft); text-transform: uppercase; letter-spacing: .1em; }
-    .live-leaderboard-list { display: grid; gap: .75rem; }
-    .live-leaderboard-item { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; padding: 1rem 1.25rem; border: 1px solid var(--line); border-radius: var(--radius); background: linear-gradient(150deg, rgba(16, 35, 60, .93), rgba(10, 26, 47, .84)); transition: border-color 200ms ease, transform 100ms ease; }
-    .live-leaderboard-item:hover { border-color: rgba(212, 175, 55, 0.4); transform: translateX(4px); }
-    .live-leaderboard-item .rank { font-size: clamp(1.5rem, 3vw, 2.2rem); font-weight: 800; color: var(--gold); min-width: 50px; }
-    .live-leaderboard-item .nickname { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 600; }
-    .live-leaderboard-item .distance { font-size: clamp(1.1rem, 2vw, 1.5rem); font-weight: 700; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--gold-soft); text-align: right; }
-    .live-leaderboard-item .exhibition { color: var(--muted); font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; }
-    .live-today { padding: 1.5rem; border: 1px solid rgba(212, 175, 55, .28); border-radius: var(--radius); background: rgba(212, 175, 55, .07); }
-    .live-today h2 { font-size: clamp(1.1rem, 2vw, 1.5rem); margin: 0 0 1rem; color: var(--gold-soft); text-transform: uppercase; letter-spacing: .1em; }
-    .live-today .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    .live-today .stat { text-align: center; }
-    .live-today .stat-value { font-size: clamp(2rem, 4vw, 3rem); font-weight: 800; color: var(--gold-soft); line-height: 1.1; }
-    .live-today .stat-label { margin-top: .25rem; color: var(--muted); font-size: clamp(.75rem, 1.2vw, .9rem); text-transform: uppercase; letter-spacing: .07em; }
-    @media (max-width: 1100px) { .live-main { grid-template-columns: 1fr; } .live-current { flex-direction: row; flex-wrap: wrap; } .live-current-player { flex: 1; min-width: 280px; } .live-qr { flex: 1; min-width: 280px; } }
-    @media (max-width: 700px) { .live-current { flex-direction: column; } .live-today .stats { grid-template-columns: 1fr; gap: .75rem; } }
-    .skip-link { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--gold); color: #050b11; padding: .75rem 1rem; }
-    .skip-link:focus { left: 1rem; top: 1rem; }
-    .site-header { display: none; }
-    .site-footer { display: none; }
-    main { width: 100%; max-width: none; margin: 0; padding: 0; }
-    section { margin-top: 0; }
-  </style>
+
 </head>
 <body>
 <a class="skip-link" href="#live-main">Skip to live display</a>
@@ -71,7 +32,7 @@
       <div class="live-current-player" id="current-player">
         <div class="label">NOW SURFING</div>
         <div class="nickname waiting" id="current-nickname">Waiting for player…</div>
-        <div class="distance" id="current-distance" style="display:none;"></div>
+        <div class="distance" id="current-distance" hidden></div>
       </div>
       <div class="live-qr" id="live-qr">
         <div class="label">SCAN TO PLAY</div>

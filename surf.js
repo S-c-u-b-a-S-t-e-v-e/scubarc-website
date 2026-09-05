@@ -391,7 +391,7 @@
     
     resultDistance.textContent = (distanceCm / 160934.4).toFixed(2) + " miles";
     resultReason.textContent = reason === "collision" ? "CRASH" : "COURSE COMPLETE";
-    resultReason.style.color = reason === "collision" ? "#f87171" : "#4ecdc4";
+    resultReason.classList.toggle("collision", reason === "collision");
     resultNote.textContent = "Enter a nickname to submit your score to the leaderboard.";
     resultDisplay.hidden = false;
     nicknameForm.hidden = false;

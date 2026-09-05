@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 async function scenario(remaining, delay, trigger) {
   let clock = 100, timer, frame, submitted, submits = 0;
-  const element = { style: {}, getContext: () => ({}), addEventListener() {}, querySelector() { return this; } };
+  const element = { classList: { toggle() {}, remove() {} }, getContext: () => ({}), addEventListener() {}, querySelector() { return this; } };
   const storage = { getItem: key => ({ scubarc_cc_node_id: 'fixture', scubarc_cc_node_token: 'token', commonwealth_nickname: 'Test' }[key] || ''), setItem() {} };
   const context = {
     window: { devicePixelRatio: 1 }, document: { readyState: 'loading', getElementById: () => element, addEventListener() {} },
