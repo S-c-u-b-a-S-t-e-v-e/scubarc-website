@@ -130,10 +130,10 @@
 
   function readSessionStorage() {
     try {
-      const nickname = sessionStorage.getItem("cc_surf_nickname") || "";
-      const src = sessionStorage.getItem("cc_surf_src") || "direct";
-      const runId = sessionStorage.getItem("cc_surf_run_id") || "";
-      const verifiedDistance = sessionStorage.getItem("cc_surf_verified_distance") || "";
+      const nickname = sessionStorage.getItem("commonwealth_nickname") || "";
+      const src = sessionStorage.getItem("commonwealth_src") || "direct";
+      const runId = sessionStorage.getItem("commonwealth_run_id") || "";
+      const verifiedDistance = sessionStorage.getItem("commonwealth_verified_distance") || "";
       return { nickname, src, runId, verifiedDistance };
     } catch (_) {
       return { nickname: "", src: "direct", runId: "", verifiedDistance: "" };
@@ -142,19 +142,19 @@
 
   function writeSessionStorage(data) {
     try {
-      if (data.nickname) sessionStorage.setItem("cc_surf_nickname", data.nickname);
-      if (data.src) sessionStorage.setItem("cc_surf_src", data.src);
-      if (data.runId) sessionStorage.setItem("cc_surf_run_id", data.runId);
-      if (data.verifiedDistance) sessionStorage.setItem("cc_surf_verified_distance", data.verifiedDistance);
+      if (data.nickname) sessionStorage.setItem("commonwealth_nickname", data.nickname);
+      if (data.src) sessionStorage.setItem("commonwealth_src", data.src);
+      if (data.runId) sessionStorage.setItem("commonwealth_run_id", data.runId);
+      if (data.verifiedDistance) sessionStorage.setItem("commonwealth_verified_distance", data.verifiedDistance);
     } catch (_) {}
   }
 
   function clearSessionStorage() {
     try {
-      sessionStorage.removeItem("cc_surf_nickname");
-      sessionStorage.removeItem("cc_surf_src");
-      sessionStorage.removeItem("cc_surf_run_id");
-      sessionStorage.removeItem("cc_surf_verified_distance");
+      sessionStorage.removeItem("commonwealth_nickname");
+      sessionStorage.removeItem("commonwealth_src");
+      sessionStorage.removeItem("commonwealth_run_id");
+      sessionStorage.removeItem("commonwealth_verified_distance");
     } catch (_) {}
   }
 

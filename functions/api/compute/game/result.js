@@ -1,4 +1,4 @@
-import { json, readJson, newId, authenticateNode, clampInt } from "./_lib.js";
+import { json, readJson, newId, authenticateNode, clampInt } from "../_lib.js";
 
 function getContestDay() {
   const now = new Date();
@@ -108,7 +108,9 @@ export async function onRequestPost({ request, env }) {
     if (!node) return json({ error: "unauthorized_node" }, 401);
 
     const runId = String(body.run_id || "");
-    const events = Array.isArray(body.events) ? body.events.slice(0, 500) : [];
+    const rawEvents = Array.isArray(body.events) ? body.events : [];
+    if (rawEvents.length > 500) return json({ error: "event_log_too_large", max_events: 500 }, 400);
+    const events = rawEvents;
     const nickname = String(body.nickname || "").trim().slice(0, 24);
 
     if (!runId || events.length === 0) return json({ error: "invalid_submission" }, 400);
