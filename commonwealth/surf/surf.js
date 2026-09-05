@@ -85,7 +85,7 @@
 
       // Redirect to game page (game worker implements game.html)
       // Game worker reads sessionStorage, calls POST /api/compute/game/start with { nickname, src }
-      window.location.href = preserveSrc('../game.html');
+      window.location.href = preserveSrc('/commonwealth/surf/game.html');
     });
   }
 
