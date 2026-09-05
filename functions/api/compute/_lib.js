@@ -50,7 +50,7 @@ export function mix32(seed, iterations) {
 }
 
 export async function verifyTurnstile(secret, token, request) {
-  if (!secret) return true;
+  if (!secret) return false;
   if (!token) return false;
   const form = new FormData();
   form.set("secret", secret);
@@ -74,4 +74,14 @@ export async function authenticateNode(env, request, claimedNodeId = "") {
   if (!row || row.status !== "active") return null;
   if (claimedNodeId && row.node_id !== claimedNodeId) return null;
   return row;
+}
+
+export function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
 }

@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS contributors (
   contributor_id TEXT PRIMARY KEY,
   created_at TEXT NOT NULL,
   display_name TEXT NOT NULL DEFAULT '',
-  email TEXT NOT NULL DEFAULT '',
   virginia_opt_in INTEGER NOT NULL DEFAULT 0 CHECK (virginia_opt_in IN (0,1)),
   locality TEXT NOT NULL DEFAULT '',
   consent_version TEXT NOT NULL
@@ -74,3 +73,53 @@ CREATE INDEX IF NOT EXISTS idx_work_status_expires ON work_units(status, expires
 CREATE INDEX IF NOT EXISTS idx_assignments_work ON assignments(work_id);
 CREATE INDEX IF NOT EXISTS idx_assignments_node ON assignments(node_id);
 CREATE INDEX IF NOT EXISTS idx_receipts_status ON receipts(verification_status);
+
+-- Game schema (versioned for Commonwealth Surf v0, extensible for future modes)
+CREATE TABLE IF NOT EXISTS game_runs (
+  run_id TEXT PRIMARY KEY,
+  node_id TEXT NOT NULL REFERENCES nodes(node_id),
+  contributor_id TEXT NOT NULL REFERENCES contributors(contributor_id),
+  created_at TEXT NOT NULL,
+  started_at TEXT,
+  completed_at TEXT,
+  expires_at TEXT NOT NULL,
+  game_type TEXT NOT NULL DEFAULT 'surf',
+  game_version TEXT NOT NULL DEFAULT 'surf-0.1',
+  contest_day TEXT NOT NULL,
+  seed INTEGER NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('active','completed','expired','rejected')),
+  server_score INTEGER NOT NULL DEFAULT 0,
+  distance_cm INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  event_count INTEGER NOT NULL DEFAULT 0,
+  terminal_reason TEXT,
+  prize_eligible INTEGER NOT NULL DEFAULT 1 CHECK (prize_eligible IN (0,1))
+);
+
+CREATE TABLE IF NOT EXISTS game_events (
+  event_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES game_runs(run_id),
+  sequence INTEGER NOT NULL,
+  timestamp_ms INTEGER NOT NULL,
+  event_type TEXT NOT NULL,
+  payload TEXT NOT NULL DEFAULT '{}'
+);
+
+CREATE TABLE IF NOT EXISTS leaderboard (
+  entry_id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL UNIQUE REFERENCES game_runs(run_id),
+  contributor_id TEXT NOT NULL REFERENCES contributors(contributor_id),
+  nickname TEXT NOT NULL,
+  game_type TEXT NOT NULL,
+  contest_day TEXT NOT NULL,
+  server_score INTEGER NOT NULL,
+  achieved_at TEXT NOT NULL,
+  prize_eligible INTEGER NOT NULL DEFAULT 1 CHECK (prize_eligible IN (0,1))
+);
+
+CREATE INDEX IF NOT EXISTS idx_game_runs_node ON game_runs(node_id);
+CREATE INDEX IF NOT EXISTS idx_game_runs_status ON game_runs(status);
+CREATE INDEX IF NOT EXISTS idx_game_runs_expires ON game_runs(expires_at);
+CREATE INDEX IF NOT EXISTS idx_game_runs_contest ON game_runs(contest_day, game_type);
+CREATE INDEX IF NOT EXISTS idx_game_events_run ON game_events(run_id);
+CREATE INDEX IF NOT EXISTS idx_leaderboard_score ON leaderboard(game_type, contest_day, server_score DESC, achieved_at ASC);

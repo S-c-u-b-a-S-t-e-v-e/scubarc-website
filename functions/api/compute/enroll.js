@@ -16,7 +16,6 @@ export async function onRequestPost({ request, env }) {
     const now = new Date().toISOString();
 
     const displayName = safeText(body.display_name, 80);
-    const email = safeText(body.email, 160).toLowerCase();
     const locality = safeText(body.locality, 100);
     const consentVersion = safeText(body.consent_version, 80);
     if (!consentVersion) return json({ error: "consent_required" }, 400);
@@ -32,9 +31,9 @@ export async function onRequestPost({ request, env }) {
     await env.COMMUNITY_DB.batch([
       env.COMMUNITY_DB.prepare(
         `INSERT INTO contributors
-         (contributor_id, created_at, display_name, email, virginia_opt_in, locality, consent_version)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)`
-      ).bind(contributorId, now, displayName, email, body.virginia_opt_in ? 1 : 0, locality, consentVersion),
+         (contributor_id, created_at, display_name, virginia_opt_in, locality, consent_version)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
+      ).bind(contributorId, now, displayName, body.virginia_opt_in ? 1 : 0, locality, consentVersion),
       env.COMMUNITY_DB.prepare(
         `INSERT INTO nodes
          (node_id, contributor_id, created_at, last_seen, platform, user_agent, logical_processors,
