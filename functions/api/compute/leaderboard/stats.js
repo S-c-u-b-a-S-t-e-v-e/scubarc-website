@@ -10,15 +10,15 @@ export async function onRequestGet({ env }) {
 
     const [playersToday, runsToday, bestDistance] = await Promise.all([
       env.COMMUNITY_DB.prepare(
-        `SELECT COUNT(DISTINCT l.contributor_id) AS n FROM leaderboard l 
+        `SELECT COUNT(DISTINCT l.contributor_id) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2'
          WHERE l.game_type = ?1 AND l.contest_day = ?2`
       ).bind(gameType, today).first(),
       env.COMMUNITY_DB.prepare(
-        `SELECT COUNT(*) AS n FROM leaderboard l 
+        `SELECT COUNT(*) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2'
          WHERE l.game_type = ?1 AND l.contest_day = ?2`
       ).bind(gameType, today).first(),
       env.COMMUNITY_DB.prepare(
-        `SELECT MAX(l.server_score) AS n FROM leaderboard l 
+        `SELECT MAX(l.server_score) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2'
          WHERE l.game_type = ?1 AND l.contest_day = ?2`
       ).bind(gameType, today).first()
     ]);

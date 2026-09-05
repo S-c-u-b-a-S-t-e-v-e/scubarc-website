@@ -29,9 +29,9 @@ export async function onRequestGet({ env, request }) {
     }
 
     const entries = await env.COMMUNITY_DB.prepare(
-      `SELECT l.nickname, l.server_score, l.achieved_at, l.prize_eligible, c.virginia_opt_in, l.contest_day
+      `SELECT l.nickname, l.server_score, l.achieved_at, l.prize_eligible, l.contest_day
        FROM leaderboard l
-       JOIN contributors c ON c.contributor_id = l.contributor_id
+       JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2'
        WHERE ${whereClause}
        ORDER BY l.server_score DESC, l.achieved_at ASC
        LIMIT ?${params.length + 1}`
@@ -53,13 +53,13 @@ export async function onRequestGet({ env, request }) {
 
     const [playersToday, runsToday, bestDistance] = await Promise.all([
       env.COMMUNITY_DB.prepare(
-        `SELECT COUNT(DISTINCT l.contributor_id) AS n FROM leaderboard l WHERE ${statsWhere}`
+        `SELECT COUNT(DISTINCT l.contributor_id) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2' WHERE ${statsWhere}`
       ).bind(...statsParams).first(),
       env.COMMUNITY_DB.prepare(
-        `SELECT COUNT(*) AS n FROM leaderboard l WHERE ${statsWhere}`
+        `SELECT COUNT(*) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2' WHERE ${statsWhere}`
       ).bind(...statsParams).first(),
       env.COMMUNITY_DB.prepare(
-        `SELECT MAX(l.server_score) AS n FROM leaderboard l WHERE ${statsWhere}`
+        `SELECT MAX(l.server_score) AS n FROM leaderboard l JOIN game_runs gr ON gr.run_id = l.run_id AND gr.game_version = 'surf-0.2' WHERE ${statsWhere}`
       ).bind(...statsParams).first()
     ]);
 

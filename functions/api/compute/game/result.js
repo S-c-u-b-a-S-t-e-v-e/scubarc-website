@@ -1,5 +1,37 @@
 import { json, readJson, newId, authenticateNode } from "../_lib.js";
 
+const OPENING_MS = 6000;
+const START_SPEED_CM_PER_MS = 0.5;
+const MAX_SPEED_CM_PER_MS = 1.2;
+const RAMP_END_MS = 90000;
+const ACCEL_CM_PER_MS2 = 1 / 120000;
+
+function speedAtElapsedMs(t) {
+  if (t <= OPENING_MS) return START_SPEED_CM_PER_MS;
+  if (t >= RAMP_END_MS) return MAX_SPEED_CM_PER_MS;
+  return START_SPEED_CM_PER_MS + ACCEL_CM_PER_MS2 * (t - OPENING_MS);
+}
+
+function distanceAtElapsedMs(t) {
+  if (t <= OPENING_MS) return START_SPEED_CM_PER_MS * t;
+  if (t > RAMP_END_MS) return 74400 + MAX_SPEED_CM_PER_MS * (t - RAMP_END_MS);
+  const r = t - OPENING_MS;
+  return 3000 + START_SPEED_CM_PER_MS * r + 0.5 * ACCEL_CM_PER_MS2 * r * r;
+}
+
+function elapsedMsAtDistanceCm(d) {
+  if (d <= 3000) return d / START_SPEED_CM_PER_MS;
+  if (d > 74400) return RAMP_END_MS + (d - 74400) / MAX_SPEED_CM_PER_MS;
+  // Rationalized positive quadratic root avoids cancellation near the opening boundary.
+  const delta = d - 3000;
+  return OPENING_MS + 2 * delta / (START_SPEED_CM_PER_MS +
+    Math.sqrt(START_SPEED_CM_PER_MS * START_SPEED_CM_PER_MS + 2 * ACCEL_CM_PER_MS2 * delta));
+}
+
+function obstacleArrivalMs(distanceCm) {
+  return Math.ceil(elapsedMsAtDistanceCm(distanceCm));
+}
+
 function getContestDay() {
   const now = new Date();
   return now.toISOString().slice(0, 10);
@@ -7,7 +39,7 @@ function getContestDay() {
 
 function generateDailySeed(contestDay) {
   let hash = 0;
-  const str = `surf-${contestDay}-genesis-2026`;
+  const str = `surf-0.2-${contestDay}-genesis-2026`;
   for (let i = 0; i < str.length; i++) {
     hash = ((hash << 5) - hash) + str.charCodeAt(i);
     hash = hash & hash;
@@ -20,11 +52,11 @@ function generateCourse(seed) {
   const random = mulberry32(seed);
   let distanceCm = 0;
   const maxObstacles = 500;
-  const baseGap = 200;
+  const baseGap = 15;
   
   for (let i = 0; i < maxObstacles; i++) {
     const lane = Math.floor(random() * 3);
-    const gap = baseGap + Math.floor(random() * 300);
+    const gap = baseGap + Math.floor(random() * 16);
     distanceCm += gap * 100;
     const type = Math.floor(random() * 3);
     obstacles.push({
@@ -73,10 +105,9 @@ function validateTiming(events, runCreatedAt, runExpiresAt) {
 function simulateSurfRun(course, events) {
   let lane = 1;
   const endMs = events.at(-1).timestamp_ms;
-  const speedCmPerMs = 0.5;
   let eventIdx = 1;
   for (const obstacle of course) {
-    const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+    const obstacleMs = obstacleArrivalMs(obstacle.distance_cm);
     if (obstacleMs > endMs) break;
     while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
       const event = events[eventIdx++];
@@ -88,10 +119,10 @@ function simulateSurfRun(course, events) {
       return { distanceCm: obstacle.distance_cm, durationMs: obstacleMs, terminalReason: "collision" };
     }
   }
-  const courseEndMs = course.at(-1).distance_cm / speedCmPerMs;
+  const courseEndMs = obstacleArrivalMs(course.at(-1).distance_cm);
   const durationMs = Math.min(endMs, courseEndMs);
   // Includes travel after the last passed obstacle; terminal payload is never scoring input.
-  return { distanceCm: durationMs * speedCmPerMs, durationMs,
+  return { distanceCm: endMs >= courseEndMs ? course.at(-1).distance_cm : distanceAtElapsedMs(durationMs), durationMs,
     terminalReason: endMs >= courseEndMs ? "course_complete" : "timeout" };
 }
 
@@ -121,7 +152,7 @@ export async function onRequestPost({ request, env }) {
 
     if (!run) return json({ error: "run_not_found" }, 404);
     if (run.node_id !== node.node_id) return json({ error: "run_node_mismatch" }, 403);
-    if (run.game_type !== "surf" || run.game_version !== "surf-0.1") return json({ error: "invalid_game_version" }, 400);
+    if (run.game_type !== "surf" || run.game_version !== "surf-0.2") return json({ error: "invalid_game_version" }, 400);
     if (run.contest_day !== contestDay) return json({ error: "contest_day_mismatch" }, 400);
     if (run.seed !== dailySeed) return json({ error: "seed_mismatch" }, 400);
     if (run.status !== "active") return json({ error: "run_not_active" }, 409);
@@ -142,7 +173,11 @@ export async function onRequestPost({ request, env }) {
     if (!Number.isFinite(result.durationMs) || !Number.isFinite(result.distanceCm) ||
         result.durationMs < 0 || result.distanceCm < 0 || result.durationMs > authorizedRunMs ||
         result.durationMs > events.at(-1).timestamp_ms ||
-        result.distanceCm !== result.durationMs * 0.5 ||
+        (result.terminalReason === "timeout"
+          ? result.distanceCm !== distanceAtElapsedMs(result.durationMs)
+          : result.durationMs !== obstacleArrivalMs(result.distanceCm) ||
+            !course.some(o => o.distance_cm === result.distanceCm) ||
+            (result.terminalReason === "course_complete" && result.distanceCm !== course.at(-1).distance_cm)) ||
         result.distanceCm > course.at(-1).distance_cm) {
       return json({ error: "invalid_replay" }, 400);
     }

@@ -25,7 +25,8 @@
   let currentRun = null;
   let events = [];
   let startTime = 0;
-  let lastFrameTime = 0;
+  let previousElapsedMs = 0;
+  let latestFinalizedObstacleArrivalMs = -1;
   let playableMs = 0;
   let expiryTimer = null;
   let leaderboardTimer = null;
@@ -33,7 +34,6 @@
   let obstacles = [];
   let course = [];
   let distanceCm = 0;
-  let speedCmPerMs = 0.5;
   let animationId = null;
   let nodeToken = "";
   let nodeId = "";
@@ -62,13 +62,45 @@
     surfer.y = rect.height - surfer.height - 40;
   }
 
+  const OPENING_MS = 6000;
+  const START_SPEED_CM_PER_MS = 0.5;
+  const MAX_SPEED_CM_PER_MS = 1.2;
+  const RAMP_END_MS = 90000;
+  const ACCEL_CM_PER_MS2 = 1 / 120000;
+
+  function speedAtElapsedMs(t) {
+    if (t <= OPENING_MS) return START_SPEED_CM_PER_MS;
+    if (t >= RAMP_END_MS) return MAX_SPEED_CM_PER_MS;
+    return START_SPEED_CM_PER_MS + ACCEL_CM_PER_MS2 * (t - OPENING_MS);
+  }
+
+  function distanceAtElapsedMs(t) {
+    if (t <= OPENING_MS) return START_SPEED_CM_PER_MS * t;
+    if (t > RAMP_END_MS) return 74400 + MAX_SPEED_CM_PER_MS * (t - RAMP_END_MS);
+    const r = t - OPENING_MS;
+    return 3000 + START_SPEED_CM_PER_MS * r + 0.5 * ACCEL_CM_PER_MS2 * r * r;
+  }
+
+  function elapsedMsAtDistanceCm(d) {
+    if (d <= 3000) return d / START_SPEED_CM_PER_MS;
+    if (d > 74400) return RAMP_END_MS + (d - 74400) / MAX_SPEED_CM_PER_MS;
+    // Rationalized positive quadratic root avoids cancellation near the opening boundary.
+    const delta = d - 3000;
+    return OPENING_MS + 2 * delta / (START_SPEED_CM_PER_MS +
+      Math.sqrt(START_SPEED_CM_PER_MS * START_SPEED_CM_PER_MS + 2 * ACCEL_CM_PER_MS2 * delta));
+  }
+
+  function obstacleArrivalMs(distanceCm) {
+    return Math.ceil(elapsedMsAtDistanceCm(distanceCm));
+  }
+
   function getContestDay() {
     return new Date().toISOString().slice(0, 10);
   }
 
   function generateDailySeed(contestDay) {
     let hash = 0;
-    const str = `surf-${contestDay}-genesis-2026`;
+    const str = `surf-0.2-${contestDay}-genesis-2026`;
     for (let i = 0; i < str.length; i++) {
       hash = ((hash << 5) - hash) + str.charCodeAt(i);
       hash = hash & hash;
@@ -90,11 +122,11 @@
     const random = mulberry32(seed);
     let distanceCm = 0;
     const maxObstacles = 500;
-    const baseGap = 200;
+    const baseGap = 15;
 
     for (let i = 0; i < maxObstacles; i++) {
       const lane = Math.floor(random() * 3);
-      const gap = baseGap + Math.floor(random() * 300);
+      const gap = baseGap + Math.floor(random() * 16);
       distanceCm += gap * 100;
       const type = Math.floor(random() * 3);
       obstacles.push({
@@ -185,6 +217,7 @@
         headers: { Authorization: `Bearer ${nodeToken}` },
         body: JSON.stringify({ node_id: nodeId })
       });
+      if (run.game_version !== "surf-0.2") throw new Error("unexpected_game_version");
       if (!Number.isFinite(run.remaining_ms) || run.remaining_ms < 0) throw new Error("invalid_run_lifetime");
       playableMs = Math.max(0, Math.floor(run.remaining_ms - (performance.now() - requestStarted) - 5000));
       currentRun = run;
@@ -195,11 +228,15 @@
       distanceCm = 0;
       events = [{ timestamp_ms: 0, event_type: "run_started", payload: "{}" }];
       startTime = performance.now();
-      lastFrameTime = startTime;
+      previousElapsedMs = 0;
+      latestFinalizedObstacleArrivalMs = -1;
       running = true;
       gameState = "playing";
       gameOverlay.hidden = true;
       gameUI.hidden = false;
+      // Populate and draw the nearby course before the first animation callback.
+      update(0);
+      render();
       updateHUD();
       expiryTimer = setTimeout(() => endRun("timeout"), playableMs);
       requestAnimationFrame(gameLoop);
@@ -219,10 +256,7 @@
     if (!running) return;
 
     if (timestamp - startTime >= playableMs) { endRun("timeout"); return; }
-    const deltaMs = timestamp - lastFrameTime;
-    lastFrameTime = timestamp;
-
-    update(deltaMs);
+    update(timestamp - startTime);
     render();
 
     if (running) {
@@ -230,26 +264,26 @@
     }
   }
 
-  function update(deltaMs) {
-    const previousDistanceCm = distanceCm;
-    const distanceDelta = speedCmPerMs * deltaMs;
-    distanceCm += distanceDelta;
+  function update(elapsedMs) {
+    const priorMs = previousElapsedMs;
+    previousElapsedMs = elapsedMs;
+    distanceCm = distanceAtElapsedMs(elapsedMs);
 
     // Match the discrete lanes recorded by steering events and server replay.
     surfer.lane = surfer.targetLane;
     surfer.x = (canvas.width / dpr) / LANES * (surfer.lane + 0.5) - surfer.width / 2;
 
-    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
+    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 6000);
 
     // An obstacle arrives at the rendered surfer center at its course distance.
-    // Check the swept distance so a delayed frame cannot skip an arrival.
+    // Check swept integer arrival times so a delayed frame cannot skip an arrival.
     // Replay recorded inputs at each arrival, not at the latest rendered lane.
     // The generated course and event history are both chronologically ordered.
     let collisionLane = 1;
     let eventIdx = 1;
     for (const obstacle of course) {
-      if (obstacle.distance_cm > previousDistanceCm && obstacle.distance_cm <= distanceCm) {
-        const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+      const obstacleMs = obstacleArrivalMs(obstacle.distance_cm);
+      if (obstacleMs > priorMs && obstacleMs <= elapsedMs) {
         while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
           const event = events[eventIdx++];
           if (event.event_type === "steer_left") collisionLane = Math.max(0, collisionLane - 1);
@@ -258,14 +292,16 @@
         }
         if (collisionLane === obstacle.lane) {
           distanceCm = obstacle.distance_cm;
-          obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
+          obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 6000);
           endRun("collision");
           return;
         }
+        latestFinalizedObstacleArrivalMs = obstacleMs;
       }
     }
 
-    if (obstacles.length === 0 && distanceCm > course[course.length - 1]?.distance_cm) {
+    if (course.length && elapsedMs >= obstacleArrivalMs(course.at(-1).distance_cm)) {
+      distanceCm = course.at(-1).distance_cm;
       endRun("course_complete");
       return;
     }
@@ -324,7 +360,7 @@
 
   function drawObstacles(cw, ch) {
     for (const obstacle of obstacles) {
-      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * (surfer.y / 50000);
+      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * (surfer.y / 6000);
       if (screenY < -50 || screenY > ch + 50) continue;
 
       const laneX = (cw / LANES) * (obstacle.lane + 0.5);
@@ -435,7 +471,9 @@
 
     const now = performance.now();
     events.push({
-      timestamp_ms: Math.round(now - startTime),
+      // Preserve callback order even when the browser clock has reduced precision.
+      // Exact-arrival input still applies until that arrival has been finalized.
+      timestamp_ms: Math.max(Math.ceil(now - startTime), latestFinalizedObstacleArrivalMs + 1),
       event_type: direction === "left" ? "steer_left" : direction === "right" ? "steer_right" : "steer_center",
       payload: "{}"
     });
@@ -443,13 +481,17 @@
 
   function endRun(reason) {
     if (!running) return;
+    if (reason === "timeout" || reason === "event_limit") {
+      update(Math.min(playableMs, Math.max(Math.ceil(performance.now() - startTime), events.at(-1).timestamp_ms)));
+      if (!running) return;
+    }
     clearTimeout(expiryTimer);
     running = false;
     gameState = "ended";
     cancelAnimationFrame(animationId);
     gameUI.hidden = true;
 
-    const durationMs = Math.min(playableMs, Math.round(performance.now() - startTime));
+    const durationMs = Math.min(playableMs, Math.max(Math.ceil(performance.now() - startTime), events.at(-1).timestamp_ms));
     events.push({
       timestamp_ms: durationMs,
       event_type: "run_ended",
@@ -471,7 +513,7 @@
     const session = readSessionStorage();
     const nickname = session.nickname || "";
     if (!nickname) {
-      resultNote.textContent = "No nickname found. Return to surf.html to set one.";
+      resultNote.textContent = "No nickname found. Return to /commonwealth/surf/ to set one.";
       return;
     }
 

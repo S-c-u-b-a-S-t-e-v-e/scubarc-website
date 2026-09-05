@@ -364,7 +364,7 @@ async function runTests() {
 
   // Test 24: Deterministic daily course/seed
   console.log("\n24. DETERMINISTIC DAILY COURSE/SEED");
-  if (startCode.includes("generateDailySeed") && startCode.includes("surf-${contestDay}-genesis-2026") && resultCode2.includes("generateDailySeed")) {
+  if (startCode.includes("generateDailySeed") && startCode.includes("surf-0.2-${contestDay}-genesis-2026") && resultCode2.includes("generateDailySeed")) {
     console.log("   PASS: Daily course/seed deterministic, shared between client and server");
     passed++;
   } else {
