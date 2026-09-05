@@ -26,6 +26,7 @@
   let events = [];
   let startTime = 0;
   let previousElapsedMs = 0;
+  let latestFinalizedObstacleArrivalMs = -1;
   let playableMs = 0;
   let expiryTimer = null;
   let leaderboardTimer = null;
@@ -228,6 +229,7 @@
       events = [{ timestamp_ms: 0, event_type: "run_started", payload: "{}" }];
       startTime = performance.now();
       previousElapsedMs = 0;
+      latestFinalizedObstacleArrivalMs = -1;
       running = true;
       gameState = "playing";
       gameOverlay.hidden = true;
@@ -294,6 +296,7 @@
           endRun("collision");
           return;
         }
+        latestFinalizedObstacleArrivalMs = obstacleMs;
       }
     }
 
@@ -468,7 +471,9 @@
 
     const now = performance.now();
     events.push({
-      timestamp_ms: Math.round(now - startTime),
+      // Preserve callback order even when the browser clock has reduced precision.
+      // Exact-arrival input still applies until that arrival has been finalized.
+      timestamp_ms: Math.max(Math.ceil(now - startTime), latestFinalizedObstacleArrivalMs + 1),
       event_type: direction === "left" ? "steer_left" : direction === "right" ? "steer_right" : "steer_center",
       payload: "{}"
     });
@@ -477,7 +482,7 @@
   function endRun(reason) {
     if (!running) return;
     if (reason === "timeout" || reason === "event_limit") {
-      update(Math.min(playableMs, Math.round(performance.now() - startTime)));
+      update(Math.min(playableMs, Math.max(Math.ceil(performance.now() - startTime), events.at(-1).timestamp_ms)));
       if (!running) return;
     }
     clearTimeout(expiryTimer);
@@ -486,7 +491,7 @@
     cancelAnimationFrame(animationId);
     gameUI.hidden = true;
 
-    const durationMs = Math.min(playableMs, Math.round(performance.now() - startTime));
+    const durationMs = Math.min(playableMs, Math.max(Math.ceil(performance.now() - startTime), events.at(-1).timestamp_ms));
     events.push({
       timestamp_ms: durationMs,
       event_type: "run_ended",

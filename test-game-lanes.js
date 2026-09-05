@@ -15,6 +15,7 @@ const hook = `
     startGameRun: async () => {
       clearTimeout(expiryTimer); clearTimeout(leaderboardTimer);
       running = false; gameState = "menu";
+      window.testClock = Math.ceil(window.testClock);
       await startGameRun();
     }, generateCourse,
     clockAt: ms => { window.testClock = startTime + ms; },
@@ -93,6 +94,70 @@ async function main() {
         };
         await tick(16);
         await lane(1);
+        // R05B: browser callbacks in explicit event-loop order. No injected events
+        // or replacement collision logic; replay the real keyboard handler's log.
+        const previousSeed = seed;
+        seed = 0;
+        const arrivalOrder = async (name, frameBefore, inputMs, expectedTimestamp, collision) => {
+          await page.evaluate(() => window.laneTest.startGameRun());
+          const initial = await state();
+          assert.equal(initial.surfer.targetLane, 1);
+          assert.equal(initial.course[0].distance_cm, 2500);
+          assert.equal(initial.course[0].lane, 2);
+          assert.equal(server.obstacleArrivalMs(initial.course[0].distance_cm), 5000);
+          if (frameBefore !== null) {
+            await page.evaluate(ms => window.laneTest.frameAt(ms), frameBefore);
+            assert.equal((await state()).running, true);
+            assert((await state()).distanceCm >= 2500);
+          }
+          await page.evaluate(ms => window.laneTest.clockAt(ms), inputMs);
+          await page.keyboard.press('ArrowRight');
+          const recorded = (await state()).events.filter(e => e.event_type.startsWith('steer_'));
+          assert.equal(recorded.length, 1);
+          assert.equal(recorded[0].timestamp_ms, expectedTimestamp, `${name}: recorded timestamp`);
+          if (frameBefore !== null) assert(recorded[0].timestamp_ms > 5000, `${name}: no time travel`);
+          await page.evaluate(() => window.laneTest.frameAt(5100));
+          const actual = await state();
+          assert.equal(!actual.running, collision, `${name}: client collision`);
+          const replayEvents = collision ? actual.events : [...actual.events,
+            { timestamp_ms: 5100, event_type: 'run_ended', payload: '{}' }];
+          const replay = server.simulateSurfRun(server.generateCourse(seed), replayEvents);
+          assert.equal(replay.terminalReason === 'collision', collision, `${name}: server collision`);
+          assert.equal(actual.distanceCm, collision ? 2500 : 2550, `${name}: client distance`);
+          assert.equal(replay.distanceCm, actual.distanceCm, `${name}: replay distance`);
+          if (collision) {
+            await page.waitForFunction(() => document.getElementById('result-note').textContent !== 'Submitting run to server for verification...', null, { polling: 10 });
+            assert.deepEqual(submissions.at(-1).events, actual.events);
+          }
+          console.log(JSON.stringify({ width, dpr, arrivalOrder: name, timestamp: recorded[0].timestamp_ms, distanceCm: actual.distanceCm, pass: true }));
+          return { recorded, distanceCm: actual.distanceCm, running: actual.running };
+        };
+        const postFrame = await arrivalOrder('A_post_processed', 5000.1, 5000.2, 5001, false);
+        const noFrame = await arrivalOrder('B_no_earlier_frame', null, 5000.2, 5001, false);
+        assert.deepEqual(postFrame, noFrame, 'physical input outcome must not depend on frame schedule');
+        await arrivalOrder('C_pre_arrival', null, 4999.8, 5000, true);
+        await arrivalOrder('D_exact_arrival', null, 5000, 5000, true);
+        await arrivalOrder('E_plus_one', null, 5001, 5001, false);
+        // A later callback can observe the same clock value at reduced precision.
+        // ceil alone cannot protect this ordering; the finalized-arrival floor must.
+        await arrivalOrder('F_same_clock_later_callback', 5000, 5000, 5001, false);
+        // Ending in that same clock tick must preserve the steering timestamp
+        // floor in both the terminal event and the client's final distance.
+        await page.evaluate(() => window.laneTest.startGameRun());
+        await page.evaluate(() => window.laneTest.frameAt(5000));
+        await page.keyboard.press('ArrowRight');
+        for (let i = 0; i < 498; i++) await page.keyboard.press('Space');
+        const ended = await state();
+        assert.equal(ended.running, false);
+        assert.equal(ended.events.at(-1).timestamp_ms, 5001);
+        assert.equal(JSON.parse(ended.events.at(-1).payload).reason, 'event_limit');
+        assert(ended.events.every((event, i, all) => i === 0 || event.timestamp_ms >= all[i - 1].timestamp_ms));
+        assert.equal(ended.distanceCm, 2500.5);
+        assert.equal(server.simulateSurfRun(server.generateCourse(seed), ended.events).distanceCm, ended.distanceCm);
+        await page.waitForFunction(() => document.getElementById('result-note').textContent !== 'Submitting run to server for verification...', null, { polling: 10 });
+        assert.deepEqual(submissions.at(-1).events, ended.events);
+        seed = previousSeed;
+        await page.evaluate(() => window.laneTest.startGameRun());
         // Reproduce the reported right-lane rock with the actual generated course.
         console.log(JSON.stringify({ width, dpr, firstObstacle: (await state()).course[0] }));
         for (const [key, expected] of [['ArrowLeft', 0], ['ArrowRight', 1], ['ArrowRight', 2], ['ArrowLeft', 1], ['ArrowLeft', 0]]) {

@@ -24,9 +24,11 @@ async function scenario(remaining, delay, trigger) {
   const playable = Math.max(0, remaining - delay - 5000);
   assert.equal(timer.ms, playable);
   if (trigger === 'events') {
-    clock += 10;
+    clock += 10.2;
     for (let i = 0; i < 499; i++) context.window.test.handleSteer('center');
     assert.equal(submitted.events.length, 500);
+    assert.equal(submitted.events[1].timestamp_ms, 11);
+    assert.equal(submitted.events.at(-1).timestamp_ms, 11);
   } else {
     clock += playable + (trigger === 'late' ? 10000 : 0);
     if (trigger === 'frame') frame(clock); else timer.fn();
@@ -36,6 +38,7 @@ async function scenario(remaining, delay, trigger) {
   assert.equal(submits, 1);
   assert.equal(submitted.events[0].event_type, 'run_started');
   assert.equal(submitted.events.at(-1).event_type, 'run_ended');
+  assert(submitted.events.every((event, i, all) => i === 0 || event.timestamp_ms >= all[i - 1].timestamp_ms));
   console.log(JSON.stringify({ remaining_ms: remaining, request_ms: delay, trigger, end_ms: submitted.events.at(-1).timestamp_ms, events: submitted.events.length, pass: true }));
 }
 (async () => {
