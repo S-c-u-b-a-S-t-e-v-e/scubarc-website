@@ -2,12 +2,18 @@
 // Real Chromium layout, canvas drawing and keyboard/touch input; local API fixtures only.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const vm = require('node:vm');
 const { chromium } = require(process.env.GAME_TEST_PLAYWRIGHT || 'playwright');
 const source = fs.readFileSync('commonwealth/surf/game.js', 'utf8');
+const serverSource = fs.readFileSync('functions/api/compute/game/result.js', 'utf8');
+const server = vm.runInNewContext(serverSource.slice(serverSource.indexOf('function getContestDay'),
+  serverSource.indexOf('export async')) + '; ({ generateCourse, simulateSurfRun })');
 const hook = `
   window.laneTest = {
-    state: () => ({ surfer: {...surfer}, course, obstacles, distanceCm, running }),
+    state: () => ({ surfer: {...surfer}, course, obstacles, distanceCm, running, events }),
     startGameRun, generateCourse,
+    clockAt: ms => { window.testClock = startTime + ms; },
+    frameAt: ms => { window.testClock = startTime + ms; gameLoop(window.testClock); },
     tick: (ms = 0) => { window.testClock += ms; gameLoop(window.testClock); }
   };
 `;
@@ -156,6 +162,93 @@ async function main() {
             assert.equal((await state()).distanceCm, first.distance_cm);
             await page.waitForFunction(() => document.getElementById('result-note').textContent !== 'Submitting run to server for verification...', null, { polling: 10 });
           }
+        }
+        // Run real input handlers with a clock independent of rendering, then compare
+        // actual client outcomes to the unmodified authoritative server replay.
+        seed = Array.from({ length: 10000 }, (_, i) => i).find(s => {
+          const first = server.generateCourse(s)[0];
+          return first.lane === 2 && first.distance_cm * 2 === 74200;
+        });
+        assert.notEqual(seed, undefined, 'missing generated 74200ms lane-2 fixture');
+        const generated = JSON.parse(JSON.stringify(server.generateCourse(seed)));
+        const arrival = generated[0].distance_cm * 2;
+        assert.equal(arrival, 74200);
+        assert.equal(generated[0].lane, 2);
+        const parity = async (name, inputs, frames, collisionIndex = null) => {
+          await page.evaluate(() => window.laneTest.startGameRun());
+          assert.deepEqual((await state()).course.map(o => ({ ...o, type: ['buoy', 'rock', 'debris'].indexOf(o.type) })), generated);
+          const actions = [...inputs.map(([ms, key]) => ({ ms, key })), ...frames.map(ms => ({ ms }))]
+            .sort((a, b) => a.ms - b.ms || Number(!a.key) - Number(!b.key));
+          for (const action of actions) {
+            if (!(await state()).running) break;
+            if (action.key) {
+              await page.evaluate(ms => window.laneTest.clockAt(ms), action.ms);
+              await page.keyboard.press(action.key);
+            } else await page.evaluate(ms => window.laneTest.frameAt(ms), action.ms);
+          }
+          const actual = await state();
+          const collision = collisionIndex !== null;
+          assert.equal(!actual.running, collision, `${name}: client collision`);
+          const recordedInputs = actual.events.filter(e => e.event_type.startsWith('steer_'));
+          const keyTypes = { ArrowLeft: 'steer_left', ArrowRight: 'steer_right', Space: 'steer_center' };
+          assert.deepEqual(recordedInputs.map(e => [e.timestamp_ms, e.event_type]),
+            inputs.map(([ms, key]) => [ms, keyTypes[key]]), `${name}: recorded input timeline`);
+          const replayEvents = collision ? actual.events : [...actual.events,
+            { timestamp_ms: frames.at(-1), event_type: 'run_ended', payload: '{}' }];
+          const replay = server.simulateSurfRun(generated, replayEvents);
+          assert.equal(replay.terminalReason === 'collision', collision, `${name}: server collision`);
+          assert.equal(actual.distanceCm, replay.distanceCm, `${name}: client/server distance`);
+          if (collision) {
+            assert.equal(actual.distanceCm, generated[collisionIndex].distance_cm, `${name}: first collision`);
+            await page.waitForFunction(() => document.getElementById('result-note').textContent !== 'Submitting run to server for verification...', null, { polling: 10 });
+            assert.deepEqual(submissions.at(-1).events, actual.events, `${name}: submitted timeline`);
+            assert.equal(JSON.parse(actual.events.at(-1).payload).reason, 'collision');
+          }
+          console.log(JSON.stringify({ width, dpr, parity: name, pass: true, distanceCm: actual.distanceCm }));
+        };
+        for (const offset of [-1, 0, 1]) {
+          await parity(`entry_${offset}ms`, [[arrival + offset, 'ArrowRight']],
+            [arrival - 2000, arrival + 2000], offset <= 0 ? 0 : null);
+          await parity(`exit_${offset}ms`, [[0, 'ArrowRight'], [arrival + offset, 'Space']],
+            [arrival - 2000, arrival + 2000], offset <= 0 ? null : 0);
+        }
+        await parity('late_entry_1000ms', [[arrival + 1000, 'ArrowRight']], [arrival - 2000, arrival + 2000]);
+        await parity('late_exit_1000ms', [[0, 'ArrowRight'], [arrival + 1000, 'ArrowLeft']], [arrival - 2000, arrival + 2000], 0);
+        await parity('enter_before_exit_after', [[arrival - 1, 'ArrowRight'], [arrival + 1, 'ArrowLeft']], [arrival - 2000, arrival + 2000], 0);
+        await parity('equal_timestamp_order_avoid', [[arrival, 'ArrowRight'], [arrival, 'Space']], [arrival - 1, arrival + 1]);
+        await parity('equal_timestamp_order_collide', [[arrival, 'Space'], [arrival, 'ArrowRight'], [arrival, 'ArrowRight']], [arrival - 1, arrival + 1], 0);
+        // Cross three arrivals in a single update. Choose lanes from the real course
+        // to avoid each preceding obstacle, then collide with the selected one.
+        for (const collisionIndex of [0, 1, 2, null]) {
+          const inputs = [];
+          for (let i = 0; i < 3; i++) {
+            const o = generated[i], ms = o.distance_cm * 2 - 1;
+            const lane = i === collisionIndex ? o.lane : (o.lane + 1) % 3;
+            inputs.push([ms, 'Space']);
+            if (lane !== 1) inputs.push([ms, lane === 0 ? 'ArrowLeft' : 'ArrowRight']);
+          }
+          await parity(`multiple_arrivals_first_collision_${collisionIndex}`, inputs,
+            [arrival - 2000, generated[2].distance_cm * 2 + 2000], collisionIndex);
+        }
+        // Ordinary 60-FPS rendering around arrival, including steering between frames.
+        const frames = Array.from({ length: 121 }, (_, i) => arrival - 1000 + i * (1000 / 60));
+        await parity('60fps_collision', [[arrival - 1, 'ArrowRight']], frames, 0);
+        await parity('60fps_avoidance', [[arrival + 1, 'ArrowRight']], frames);
+        // Resize while occupying every lane; inspect both state and real drawing.
+        await page.evaluate(() => window.laneTest.startGameRun());
+        for (const [key, expected] of [['ArrowLeft', 0], ['Space', 1], ['ArrowRight', 2]]) {
+          await page.keyboard.press(key); await tick();
+          await page.setViewportSize({ width: width - 30, height: 950 });
+          await page.evaluate(() => window.dispatchEvent(new Event('resize')));
+          await tick();
+          const resized = await state();
+          const canvasWidth = await page.evaluate(() => document.querySelector('canvas').width / window.devicePixelRatio);
+          assert.equal(resized.surfer.lane, expected);
+          assert.equal(resized.surfer.targetLane, expected);
+          assert(Math.abs(resized.surfer.x + resized.surfer.width / 2 - canvasWidth / 3 * (expected + 0.5)) < 0.001);
+          const draw = await page.evaluate(() => window.draws.find(d => d.name === 'translate'));
+          assert(Math.abs(draw.args[0] - canvasWidth / 3 * (expected + 0.5)) < 0.001);
+          await page.setViewportSize({ width, height: 1000 });
         }
         assert.deepEqual(errors, []);
         console.log(JSON.stringify({ width, dpr, keyboard: 'PASS', touch: 'PASS', clamping: 'PASS', lanes: [0, 1, 2], collisions: 'PASS' }));

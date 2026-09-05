@@ -230,9 +230,20 @@
 
     // An obstacle arrives at the rendered surfer center at its course distance.
     // Check the swept distance so a delayed frame cannot skip an arrival.
+    // Replay recorded inputs at each arrival, not at the latest rendered lane.
+    // The generated course and event history are both chronologically ordered.
+    let collisionLane = 1;
+    let eventIdx = 1;
     for (const obstacle of course) {
       if (obstacle.distance_cm > previousDistanceCm && obstacle.distance_cm <= distanceCm) {
-        if (surfer.lane === obstacle.lane) {
+        const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+        while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
+          const event = events[eventIdx++];
+          if (event.event_type === "steer_left") collisionLane = Math.max(0, collisionLane - 1);
+          else if (event.event_type === "steer_right") collisionLane = Math.min(2, collisionLane + 1);
+          else if (event.event_type === "steer_center") collisionLane = 1;
+        }
+        if (collisionLane === obstacle.lane) {
           distanceCm = obstacle.distance_cm;
           obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
           endRun("collision");
