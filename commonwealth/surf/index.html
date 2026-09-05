@@ -3,10 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <title>Commonwealth Surf — Play for Research</title>
-  <meta name="description" content="Commonwealth Surf — A browser game where your decisions create candidate scheduling choices for governed research. Free to play. No purchase necessary." />
+  <meta name="description" content="Commonwealth Surf — A browser game testing whether people will voluntarily contribute human decisions for research. Free to play. No purchase necessary." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Commonwealth Surf — Play for Research" />
+  <meta property="og:description" content="Free to play. No purchase necessary. Unlimited attempts. $25 daily high score. Genesis Weekend pilot." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/surf/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Commonwealth Surf — Play for Research" />
+  <meta name="twitter:description" content="Free browser game. $25 daily prize. No account needed." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -14,7 +24,15 @@
   <a class="brand" href="../index.html" aria-label="Scuba Research Collective home">
     <span>SCUBA RESEARCH COLLECTIVE</span>
   </a>
-  <nav aria-label="Primary navigation">
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
     <a href="../index.html">Home</a>
     <a href="../mission.html">Mission</a>
     <a href="../research.html">Research</a>
@@ -29,7 +47,7 @@
   <section class="page-hero surf-hero">
     <span class="eyebrow">COMMONWEALTH SURF</span>
     <h1>PLAY FOR RESEARCH</h1>
-    <p class="lead">Your decisions create candidate scheduling and recovery choices for governed research workloads. The server computes the authoritative score. Highest verified distance today wins $25.</p>
+    <p class="lead">A simple browser game testing whether people will voluntarily contribute human decisions for governed research. The server computes the authoritative score. Highest verified distance today wins $25.</p>
     <div class="actions">
       <a class="button" href="../commonwealth">← BACK TO COMMONWEALTH</a>
       <a class="button" href="../commonwealth/leaderboard">VIEW LEADERBOARD</a>
@@ -37,13 +55,18 @@
   </section>
 
   <section class="surf-entry" aria-labelledby="surf-form-heading">
-    <h2 id="surf-form-heading">Enter your nickname to play</h2>
+    <div class="surf-header">
+      <span class="kicker surf-kicker">GENESIS WEEKEND</span>
+      <h2 id="surf-form-heading">Enter Commonwealth Surf</h2>
+      <p class="surf-tagline">Free to play · No purchase necessary · Unlimited attempts · $25 daily high score</p>
+    </div>
+    
     <p class="muted-text" style="text-align:center;margin-bottom:1rem;">Nickname will appear on the public leaderboard. No email, password, or account required.</p>
     
     <form class="surf-form" id="surf-form">
       <div class="form-group">
         <label for="surf-nickname">Nickname <span class="muted-text">(required, max 24 chars)</span>
-          <input type="text" id="surf-nickname" name="nickname" maxlength="24" required autocomplete="username" placeholder="Enter nickname" />
+          <input type="text" id="surf-nickname" name="nickname" maxlength="24" required autocomplete="username" placeholder="Enter your callsign" />
         </label>
       </div>
       <label class="checkbox-row required-row">

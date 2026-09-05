@@ -7,6 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Commonwealth.ai — Built by the Commonwealth" />
+  <meta property="og:description" content="Two ways to contribute: donate compute or play Commonwealth Surf. Voluntary, governed, no account required. Genesis Weekend pilot." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Commonwealth.ai — Built by the Commonwealth" />
+  <meta name="twitter:description" content="Voluntary compute and human participation for governed research." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -14,7 +24,15 @@
   <a class="brand" href="../index.html" aria-label="Scuba Research Collective home">
     <span>SCUBA RESEARCH COLLECTIVE</span>
   </a>
-  <nav aria-label="Primary navigation">
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
     <a href="../index.html">Home</a>
     <a href="../mission.html">Mission</a>
     <a href="../research.html">Research</a>
@@ -41,7 +59,7 @@
     <div>
       <span class="kicker">How it works</span>
       <h2>Two ways to contribute. Both voluntary. Both governed.</h2>
-      <p>Commonwealth.ai is a Scuba Research Collective pilot testing whether ordinary people can safely add computing power and human problem-solving to Virginia's research infrastructure.</p>
+      <p>Commonwealth.ai is a Scuba Research Collective pilot testing whether ordinary people will voluntarily contribute computing power and human participation to Virginia's research infrastructure. Genesis Weekend measures participation and engagement first; future experiments can test whether human decisions improve research-compute scheduling.</p>
     </div>
     <div class="card-grid two">
       <article class="card">
@@ -52,7 +70,7 @@
       <article class="card">
         <span class="status">2</span>
         <h3>Play Commonwealth Surf</h3>
-        <p>A simple browser game where your decisions create candidate scheduling and recovery choices for research workloads. The server computes the authoritative score. Highest verified distance today wins $25. Free entry. Unlimited attempts.</p>
+        <p>A simple browser game where your decisions create candidate scheduling choices for governed research. The server computes the authoritative score. Highest verified distance today wins $25. Free entry. Unlimited attempts.</p>
       </article>
     </div>
   </section>

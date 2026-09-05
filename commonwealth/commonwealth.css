@@ -139,6 +139,29 @@
   box-shadow: 0 16px 35px rgba(0, 0, 0, 0.18);
 }
 
+.surf-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.surf-kicker {
+  color: var(--gold);
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: .5rem;
+}
+
+.surf-tagline {
+  color: var(--gold-soft);
+  font-size: .85rem;
+  font-weight: 600;
+  margin: .5rem 0 0;
+  letter-spacing: .02em;
+}
+
 .surf-entry h2 {
   margin-top: 0;
   text-align: center;
@@ -218,6 +241,20 @@
   color: #050b11;
 }
 
+.leaderboard-tabs .today-tab {
+  border-color: rgba(212, 175, 55, .5);
+  background: rgba(212, 175, 55, .08);
+}
+
+.leaderboard-tabs .today-tab:hover {
+  background: rgba(212, 175, 55, .15);
+}
+
+.leaderboard-stats .today-stat {
+  border-color: rgba(212, 175, 55, .35);
+  background: rgba(212, 175, 55, .05);
+}
+
 .leaderboard-table {
   width: 100%;
   border-collapse: collapse;
@@ -268,10 +305,21 @@
 .leaderboard-table .exhibition-badge {
   display: inline-block;
   padding: .15rem .5rem;
-  border: 1px solid rgba(255, 255, 255, .2);
+  border: 1px solid rgba(212, 175, 55, .35);
   border-radius: 999px;
   font-size: .7rem;
-  color: var(--muted);
+  color: var(--gold-soft);
+  background: rgba(212, 175, 55, .1);
+  font-weight: 700;
+  letter-spacing: .05em;
+}
+
+.leaderboard-table .exhibition-row td {
+  background: rgba(212, 175, 55, .04);
+}
+
+.leaderboard-table .exhibition-row:hover td {
+  background: rgba(212, 175, 55, .08);
 }
 
 .leaderboard-empty {
@@ -293,6 +341,11 @@
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.025);
   text-align: center;
+}
+
+.leaderboard-stats .stat:first-child {
+  border-color: rgba(212, 175, 55, .35);
+  background: rgba(212, 175, 55, .05);
 }
 
 .leaderboard-stats .stat-value {
@@ -328,6 +381,20 @@
   font-size: .6rem;
   color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-left: .5rem;
+}
+
+/* Enhanced exhibition badge for live */
+.live-leaderboard-item .exhibition-badge {
+  display: inline-block;
+  padding: .1rem .4rem;
+  border: 1px solid rgba(212, 175, 55, .35);
+  border-radius: 999px;
+  font-size: .6rem;
+  color: var(--gold-soft);
+  background: rgba(212, 175, 55, .1);
+  font-weight: 700;
   letter-spacing: .05em;
   margin-left: .5rem;
 }

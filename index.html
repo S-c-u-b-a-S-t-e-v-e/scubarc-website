@@ -6,6 +6,16 @@
   <meta name="description" content="Veteran-founded public-interest research in responsible AI, cognitive security, advanced sensing, early warning, and community-powered research computing." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Scuba Research Collective — Veteran-founded public-interest research" />
+  <meta property="og:description" content="Advanced research. Practical tools. Public benefit. Responsible AI, cognitive security, advanced sensing, early warning, and community-powered research computing." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/" />
+  <meta property="og:site_name" content="Scuba Research Collective" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Scuba Research Collective" />
+  <meta name="twitter:description" content="Veteran-founded public-interest research in responsible AI, cognitive security, advanced sensing, early warning, and community-powered research computing." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -13,7 +23,15 @@
   <a class="brand" href="index.html" aria-label="Scuba Research Collective home">
     <span>SCUBA RESEARCH COLLECTIVE</span>
   </a>
-  <nav aria-label="Primary navigation">
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
         <a href="index.html" aria-current="page">Home</a>
         <a href="mission.html">Mission</a>
         <a href="research.html">Research</a>

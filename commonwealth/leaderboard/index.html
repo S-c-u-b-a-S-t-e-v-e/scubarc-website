@@ -7,6 +7,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../style.css" />
   <link rel="stylesheet" href="commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Commonwealth Surf — Leaderboard" />
+  <meta property="og:description" content="Server-authoritative scores. TODAY • THIS WEEK • ALL TIME. Highest verified distance wins $25 daily." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/leaderboard/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Commonwealth Surf — Leaderboard" />
+  <meta name="twitter:description" content="Today's leaderboard. $25 daily prize. Server-verified." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -14,7 +24,15 @@
   <a class="brand" href="../index.html" aria-label="Scuba Research Collective home">
     <span>SCUBA RESEARCH COLLECTIVE</span>
   </a>
-  <nav aria-label="Primary navigation">
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
     <a href="../index.html">Home</a>
     <a href="../mission.html">Mission</a>
     <a href="../research.html">Research</a>
@@ -32,13 +50,13 @@
     <p class="lead">Server-authoritative scores for the Genesis Weekend pilot. Highest verified distance wins $25. Updated every few seconds.</p>
     <div class="actions">
       <a class="button" href="../commonwealth">← BACK TO COMMONWEALTH</a>
-      <a class="button" href="../commonwealth/surf">PLAY SURF</a>
+      <a class="button primary" href="../commonwealth/surf">PLAY SURF</a>
       <a class="button" href="../commonwealth/live">LIVE TV DISPLAY</a>
     </div>
   </section>
 
   <section class="leaderboard-stats" id="leaderboard-stats" aria-live="polite">
-    <div class="stat">
+    <div class="stat today-stat">
       <div class="stat-value" id="stat-players">—</div>
       <div class="stat-label">Players today</div>
     </div>
@@ -53,7 +71,7 @@
   </section>
 
   <div class="leaderboard-tabs" id="leaderboard-tabs" role="tablist" aria-label="Leaderboard timeframe">
-    <button class="button" role="tab" aria-selected="true" data-tab="today" id="tab-today">TODAY</button>
+    <button class="button today-tab" role="tab" aria-selected="true" data-tab="today" id="tab-today">TODAY</button>
     <button class="button" role="tab" aria-selected="false" data-tab="week" id="tab-week">THIS WEEK</button>
     <button class="button" role="tab" aria-selected="false" data-tab="all" id="tab-all">ALL TIME</button>
   </div>
