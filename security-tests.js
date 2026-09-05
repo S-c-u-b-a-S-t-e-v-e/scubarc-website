@@ -290,9 +290,23 @@ async function runTests() {
 
   // Test 20: Server validates impossible timing
     console.log("\n20. SERVER VALIDATES IMPOSSIBLE TIMING");
-    if (resultCode2.includes("Number.isInteger") && resultCode2.includes("Number.isFinite") && 
-        resultCode2.includes("ts < 0") && resultCode2.includes("ts < lastTime") &&
-        resultCode2.includes("maxAllowedDurationMs") && resultCode2.includes("serverObservedElapsedMs")) {
+    const vm = await import('node:vm');
+    const validateTiming = vm.runInNewContext(resultCode2.slice(
+      resultCode2.indexOf('function validateTiming'), resultCode2.indexOf('function simulateSurfRun')
+    ) + '; validateTiming');
+    const now = Date.now();
+    const created = new Date(now - 1000).toISOString();
+    const expires = new Date(now + 599000).toISOString();
+    const timingLog = end => [
+      { timestamp_ms: 0, event_type: 'run_started' },
+      { timestamp_ms: end, event_type: 'run_ended' }
+    ];
+    const invalidTimes = [-1, 0.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, 600001, 60000];
+    const backward = [timingLog(0)[0], { timestamp_ms: 900, event_type: 'steer_left' }, timingLog(800)[1]];
+    if (validateTiming(timingLog(1000), created, expires) &&
+        invalidTimes.every(ts => !validateTiming(timingLog(ts), created, expires)) &&
+        !validateTiming(backward, created, expires) &&
+        !validateTiming(timingLog(1001), created, new Date(now).toISOString())) {
       console.log("   PASS: Server rejects non-integer, non-finite, negative, backward timestamps, and validates timeline bounds");
       passed++;
     } else {

@@ -83,6 +83,10 @@
   backdrop-filter: blur(4px);
 }
 
+.game-overlay[hidden] {
+  display: none;
+}
+
 .overlay-content {
   text-align: center;
   max-width: 90%;
