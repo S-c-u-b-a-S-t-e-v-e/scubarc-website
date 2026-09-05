@@ -10,7 +10,7 @@ assert(['localhost', '127.0.0.1', '[::1]'].includes(new URL(base).hostname));
 const read = p => fs.readFileSync(p, 'utf8');
 const source = read('commonwealth/surf/game.js');
 const resultSource = read('functions/api/compute/game/result.js');
-const server = vm.runInNewContext(resultSource.slice(resultSource.indexOf('function getContestDay'), resultSource.indexOf('export async')) + '; ({generateDailySeed,generateCourse})');
+const server = vm.runInNewContext(resultSource.slice(resultSource.indexOf('const OPENING_MS'), resultSource.indexOf('export async')) + '; ({generateDailySeed,generateCourse,obstacleArrivalMs})');
 const startSource = read('functions/api/compute/game/start.js');
 const startSeed = vm.runInNewContext(startSource.slice(startSource.indexOf('function getContestDay'), startSource.indexOf('export async')) + '; generateDailySeed');
 const clientSeed = vm.runInNewContext(source.slice(source.indexOf('  function getContestDay'), source.indexOf('  function mulberry32')) + '; generateDailySeed');
@@ -37,15 +37,16 @@ for (const p of ['compute.html','commonwealth/compute/index.html']) assert(!read
 const lanes = new Set(), types = new Set();
 for (const seed of [0,1,42,2147483647,4294967295,server.generateDailySeed(new Date().toISOString().slice(0,10))]) {
   const course = server.generateCourse(seed);
+  assert(course.some((o,i) => i > 0 && server.obstacleArrivalMs(course[i-1].distance_cm) > 90000 && server.obstacleArrivalMs(o.distance_cm) - server.obstacleArrivalMs(course[i-1].distance_cm) < 3000));
   let prior = 0;
   for (const o of course) {
     const gap = o.distance_cm - prior;
-    assert(gap >= 1500 && gap <= 3000); assert(gap / 0.5 >= 3000 && gap / 0.5 <= 6000);
+    assert(gap >= 1500 && gap <= 3000);
     prior = o.distance_cm; lanes.add(o.lane); types.add(o.type);
   }
-  assert(course[0].distance_cm * 2 >= 3000 && course[0].distance_cm * 2 <= 6000);
-  assert(course.filter(o => o.distance_cm * 2 <= 30000).length >= 5);
-  console.log(JSON.stringify({seed, first_arrival_ms:course[0].distance_cm*2, arrivals_by_30s:course.filter(o=>o.distance_cm*2<=30000).length, pacing:'PASS'}));
+  assert(server.obstacleArrivalMs(course[0].distance_cm) >= 3000 && server.obstacleArrivalMs(course[0].distance_cm) <= 6000);
+  assert(course.filter(o => server.obstacleArrivalMs(o.distance_cm) <= 30000).length >= 5);
+  console.log(JSON.stringify({seed, first_arrival_ms:server.obstacleArrivalMs(course[0].distance_cm), arrivals_by_30s:course.filter(o=>server.obstacleArrivalMs(o.distance_cm)<=30000).length, pacing:'PASS'}));
 }
 assert.deepEqual([...lanes].sort(), [0,1,2]); assert.deepEqual([...types].sort(), [0,1,2]);
 function noGeography(value) {

@@ -37,8 +37,8 @@ async function request(path, body, token) {
 }
 function load(file, browser = false) {
   let src = fs.readFileSync(file, 'utf8');
-  src = browser ? src.slice(src.indexOf('  function mulberry32'), src.indexOf('  async function api')) : src.slice(src.indexOf('function getContestDay'), src.indexOf('export async'));
-  return vm.runInNewContext(`${browser ? 'const OBSTACLE_TYPES = ["buoy","rock","debris"];' : ''}${src}; ({mulberry32,generateCourse${browser ? '' : ',validateTiming,simulateSurfRun'}})`);
+  src = browser ? src.slice(src.indexOf('  function mulberry32'), src.indexOf('  async function api')) : src.slice(src.indexOf('const OPENING_MS'), src.indexOf('export async'));
+  return vm.runInNewContext(`${browser ? 'const OBSTACLE_TYPES = ["buoy","rock","debris"];' : ''}${src}; ({mulberry32,generateCourse${browser ? '' : ',validateTiming,simulateSurfRun,distanceAtElapsedMs,obstacleArrivalMs'}})`);
 }
 const server = load('functions/api/compute/game/result.js');
 const browser = load('commonwealth/surf/game.js', true);
@@ -118,7 +118,7 @@ async function main() {
     if (expected === 'accepted') {
       assert.equal(result.status, 200, JSON.stringify(result)); const d = result.data;
       assert(Number.isFinite(d.duration_ms) && d.duration_ms >= 0 && d.duration_ms <= events.at(-1).timestamp_ms && d.duration_ms <= 600000);
-      assert.equal(d.distance_cm, d.duration_ms * 0.5); assert.equal(d.distance_miles, (d.distance_cm / 160934.4).toFixed(2)); accepted.push(d);
+      assert.equal(d.distance_cm, server.simulateSurfRun(server.generateCourse(run.seed), events).distanceCm); assert.equal(d.distance_miles, (d.distance_cm / 160934.4).toFixed(2)); accepted.push(d);
     } else { assert.equal(result.data.error, expected, JSON.stringify(result)); assert(result.status >= 400); }
     record(name, result);
     if (expected !== 'accepted') sql(`UPDATE game_runs SET status='rejected' WHERE run_id='${run.run_id}'`);
@@ -128,13 +128,30 @@ async function main() {
   const duplicate = await submit(short.run, log(1000)); assert.equal(duplicate.status, 409); record('DUPLICATE_RESULT', duplicate);
   const safeLog = end => {
     const events = [event(0, 'run_started')];
+    let lane = 1;
     for (const o of server.generateCourse(first.seed)) {
-      const time = o.distance_cm * 2; if (time > end) break;
-      events.push(event(time - 100, 'steer_center')); if (o.lane === 1) events.push(event(time - 50, 'steer_left'));
+      const time = server.obstacleArrivalMs(o.distance_cm); if (time > end) break;
+      if (o.lane === lane) {
+        lane = lane === 1 ? 0 : 1;
+        events.push(event(time - 1, lane === 0 ? 'steer_left' : 'steer_center'));
+      }
     }
     events.push(event(end, 'run_ended')); return events;
   };
-  const long = await check('NORMAL_LONG_RUN', safeLog(120000), 'accepted', 121000); assert.equal(long.result.data.distance_cm, 60000);
+  const long = await check('NORMAL_LONG_RUN', safeLog(120000), 'accepted', 121000); assert.equal(long.result.data.distance_cm, 110400);
+  // Exercise actual HTTP replay and persisted collision scores during ramp and cap.
+  for (const targetMs of [30000,90001]) {
+    const obstacle = server.generateCourse(first.seed).find(o => server.obstacleArrivalMs(o.distance_cm) >= targetMs);
+    const arrival = server.obstacleArrivalMs(obstacle.distance_cm);
+    const inputs = safeLog(arrival-2).slice(0,-1);
+    inputs.push(event(arrival,'steer_center'));
+    if(obstacle.lane !== 1) inputs.push(event(arrival,obstacle.lane===0?'steer_left':'steer_right'));
+    inputs.push({...event(arrival+10,'run_ended'),payload:JSON.stringify({reason:'timeout',distance_cm:999999999})});
+    const collision = await check('PROGRESSIVE_HTTP_COLLISION_'+targetMs,inputs,'accepted',arrival+1000);
+    assert.equal(collision.result.data.terminal_reason,'collision');
+    assert.equal(collision.result.data.distance_cm,obstacle.distance_cm);
+    assert.equal(collision.result.data.duration_ms,arrival);
+  }
   await check('EPOCH_ATTACK', [event(Date.now(), 'run_started'), event(Date.now() + 1000, 'run_ended')]);
   await check('HUGE_TIMESTAMP', [event(999999999, 'run_started'), event(1000000000, 'run_ended')]);
   await check('NEGATIVE_TIMESTAMP', [event(0, 'run_started'), event(-1, 'steer_left'), event(1000, 'run_ended')]);
@@ -160,9 +177,9 @@ async function main() {
   assert.equal(sql(`SELECT COUNT(*) AS n FROM leaderboard WHERE run_id='${dupRun.run_id}'`)[0].n, 1);
   record('CONCURRENT_DUPLICATE', { pass: true, statuses: dupResults.map(r => r.status), accepted: dupResults.find(r => r.status === 200).data });
   const turnstile = await request('/enroll', { turnstile_token: 'invalid', consent_version: 'test' }); assert.equal(turnstile.status, 403); record('TURNSTILE', turnstile);
-  const board = await request('/leaderboard'); assert.equal(board.status, 200); assert(board.data.entries.some(e => e.nickname === id)); assert.equal(board.data.stats.best_distance_miles, '1.86'); record('LEADERBOARD', board);
+  const board = await request('/leaderboard'); assert.equal(board.status, 200); assert(board.data.entries.some(e => e.nickname === id)); assert.equal(board.data.stats.best_distance_miles, '4.27'); record('LEADERBOARD', board);
   const stats = await request('/leaderboard/stats'); assert.equal(stats.status, 200); assert.deepEqual(stats.data, board.data.stats); record('STATS', stats);
-  const active = await start(), live = await request('/live/current'); assert.equal(live.status, 200); assert(live.data.active_players.some(p => p.run_id === active.data.run_id)); assert(live.data.recent_completions.some(p => p.run_id === short.run.run_id)); assert.equal(live.data.current_leader.distance_miles, '1.86'); record('LIVE', live);
+  const active = await start(), live = await request('/live/current'); assert.equal(live.status, 200); assert(live.data.active_players.some(p => p.run_id === active.data.run_id)); assert(live.data.recent_completions.some(p => p.run_id === short.run.run_id)); assert.equal(live.data.current_leader.distance_miles, '4.27'); record('LIVE', live);
   function noGeography(value) {
     if (!value || typeof value !== 'object') return;
     for (const [key, child] of Object.entries(value)) {
@@ -179,8 +196,12 @@ async function main() {
   assert.notEqual(live.data.current_leader.nickname, 'HISTORICAL_R05');
   assert.equal(sql(`SELECT COUNT(*) AS n FROM leaderboard WHERE run_id='${oldRun}'`)[0].n, 1);
   record('OLD_SCORE_ISOLATION_AND_PUBLIC_PRIVACY', {pass:true, history_preserved:true});
-  const invalidRows = sql(`SELECT COUNT(*) AS n FROM game_runs WHERE node_id='${id}' AND game_version='surf-0.2' AND status='completed' AND (duration_ms < 0 OR duration_ms > 600000 OR distance_cm < 0 OR distance_cm != duration_ms * 0.5)`);
-  assert.equal(invalidRows[0].n, 0);
+  const rows = sql(`SELECT distance_cm,duration_ms,terminal_reason FROM game_runs WHERE node_id='${id}' AND game_version='surf-0.2' AND status='completed'`);
+  for (const row of rows) {
+    assert(row.duration_ms >= 0 && row.duration_ms <= 600000 && row.distance_cm >= 0);
+    if (row.terminal_reason === 'timeout') assert.equal(row.distance_cm, server.distanceAtElapsedMs(row.duration_ms));
+    else assert.equal(row.duration_ms, server.obstacleArrivalMs(row.distance_cm));
+  }
   record('PERSISTED_SCORE_BOUNDS', { pass: true, invalid_rows: 0 });
   record('MAX_ACCEPTED', { duration_ms: Math.max(...accepted.map(d => d.duration_ms)), distance_cm: Math.max(...accepted.map(d => d.distance_cm)), distance_miles: Math.max(...accepted.map(d => Number(d.distance_miles))) });
   if (process.env.GAME_TEST_EVIDENCE) fs.writeFileSync(process.env.GAME_TEST_EVIDENCE, JSON.stringify(evidence, null, 2));

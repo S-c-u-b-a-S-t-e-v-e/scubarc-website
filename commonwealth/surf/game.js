@@ -25,7 +25,7 @@
   let currentRun = null;
   let events = [];
   let startTime = 0;
-  let lastFrameTime = 0;
+  let previousElapsedMs = 0;
   let playableMs = 0;
   let expiryTimer = null;
   let leaderboardTimer = null;
@@ -33,7 +33,6 @@
   let obstacles = [];
   let course = [];
   let distanceCm = 0;
-  let speedCmPerMs = 0.5;
   let animationId = null;
   let nodeToken = "";
   let nodeId = "";
@@ -60,6 +59,38 @@
     surfer.height = surfer.width * 1.5;
     surfer.x = (canvas.width / dpr) / LANES * (surfer.lane + 0.5) - surfer.width / 2;
     surfer.y = rect.height - surfer.height - 40;
+  }
+
+  const OPENING_MS = 6000;
+  const START_SPEED_CM_PER_MS = 0.5;
+  const MAX_SPEED_CM_PER_MS = 1.2;
+  const RAMP_END_MS = 90000;
+  const ACCEL_CM_PER_MS2 = 1 / 120000;
+
+  function speedAtElapsedMs(t) {
+    if (t <= OPENING_MS) return START_SPEED_CM_PER_MS;
+    if (t >= RAMP_END_MS) return MAX_SPEED_CM_PER_MS;
+    return START_SPEED_CM_PER_MS + ACCEL_CM_PER_MS2 * (t - OPENING_MS);
+  }
+
+  function distanceAtElapsedMs(t) {
+    if (t <= OPENING_MS) return START_SPEED_CM_PER_MS * t;
+    if (t > RAMP_END_MS) return 74400 + MAX_SPEED_CM_PER_MS * (t - RAMP_END_MS);
+    const r = t - OPENING_MS;
+    return 3000 + START_SPEED_CM_PER_MS * r + 0.5 * ACCEL_CM_PER_MS2 * r * r;
+  }
+
+  function elapsedMsAtDistanceCm(d) {
+    if (d <= 3000) return d / START_SPEED_CM_PER_MS;
+    if (d > 74400) return RAMP_END_MS + (d - 74400) / MAX_SPEED_CM_PER_MS;
+    // Rationalized positive quadratic root avoids cancellation near the opening boundary.
+    const delta = d - 3000;
+    return OPENING_MS + 2 * delta / (START_SPEED_CM_PER_MS +
+      Math.sqrt(START_SPEED_CM_PER_MS * START_SPEED_CM_PER_MS + 2 * ACCEL_CM_PER_MS2 * delta));
+  }
+
+  function obstacleArrivalMs(distanceCm) {
+    return Math.ceil(elapsedMsAtDistanceCm(distanceCm));
   }
 
   function getContestDay() {
@@ -196,7 +227,7 @@
       distanceCm = 0;
       events = [{ timestamp_ms: 0, event_type: "run_started", payload: "{}" }];
       startTime = performance.now();
-      lastFrameTime = startTime;
+      previousElapsedMs = 0;
       running = true;
       gameState = "playing";
       gameOverlay.hidden = true;
@@ -223,10 +254,7 @@
     if (!running) return;
 
     if (timestamp - startTime >= playableMs) { endRun("timeout"); return; }
-    const deltaMs = timestamp - lastFrameTime;
-    lastFrameTime = timestamp;
-
-    update(deltaMs);
+    update(timestamp - startTime);
     render();
 
     if (running) {
@@ -234,10 +262,10 @@
     }
   }
 
-  function update(deltaMs) {
-    const previousDistanceCm = distanceCm;
-    const distanceDelta = speedCmPerMs * deltaMs;
-    distanceCm += distanceDelta;
+  function update(elapsedMs) {
+    const priorMs = previousElapsedMs;
+    previousElapsedMs = elapsedMs;
+    distanceCm = distanceAtElapsedMs(elapsedMs);
 
     // Match the discrete lanes recorded by steering events and server replay.
     surfer.lane = surfer.targetLane;
@@ -246,14 +274,14 @@
     obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 6000);
 
     // An obstacle arrives at the rendered surfer center at its course distance.
-    // Check the swept distance so a delayed frame cannot skip an arrival.
+    // Check swept integer arrival times so a delayed frame cannot skip an arrival.
     // Replay recorded inputs at each arrival, not at the latest rendered lane.
     // The generated course and event history are both chronologically ordered.
     let collisionLane = 1;
     let eventIdx = 1;
     for (const obstacle of course) {
-      if (obstacle.distance_cm > previousDistanceCm && obstacle.distance_cm <= distanceCm) {
-        const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+      const obstacleMs = obstacleArrivalMs(obstacle.distance_cm);
+      if (obstacleMs > priorMs && obstacleMs <= elapsedMs) {
         while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
           const event = events[eventIdx++];
           if (event.event_type === "steer_left") collisionLane = Math.max(0, collisionLane - 1);
@@ -269,7 +297,8 @@
       }
     }
 
-    if (obstacles.length === 0 && distanceCm > course[course.length - 1]?.distance_cm) {
+    if (course.length && elapsedMs >= obstacleArrivalMs(course.at(-1).distance_cm)) {
+      distanceCm = course.at(-1).distance_cm;
       endRun("course_complete");
       return;
     }
@@ -447,6 +476,10 @@
 
   function endRun(reason) {
     if (!running) return;
+    if (reason === "timeout" || reason === "event_limit") {
+      update(Math.min(playableMs, Math.round(performance.now() - startTime)));
+      if (!running) return;
+    }
     clearTimeout(expiryTimer);
     running = false;
     gameState = "ended";

@@ -6,8 +6,8 @@ const vm = require('node:vm');
 const { chromium } = require(process.env.GAME_TEST_PLAYWRIGHT || 'playwright');
 const source = fs.readFileSync('commonwealth/surf/game.js', 'utf8');
 const serverSource = fs.readFileSync('functions/api/compute/game/result.js', 'utf8');
-const server = vm.runInNewContext(serverSource.slice(serverSource.indexOf('function getContestDay'),
-  serverSource.indexOf('export async')) + '; ({ generateCourse, simulateSurfRun })');
+const server = vm.runInNewContext(serverSource.slice(serverSource.indexOf('const OPENING_MS'),
+  serverSource.indexOf('export async')) + '; ({ generateCourse, simulateSurfRun, obstacleArrivalMs })');
 const hook = `
   window.laneTest = {
     state: () => ({ surfer: {...surfer}, course, obstacles, distanceCm, running, events }),
@@ -202,7 +202,9 @@ async function main() {
             { timestamp_ms: frames.at(-1), event_type: 'run_ended', payload: '{}' }];
           const replay = server.simulateSurfRun(generated, replayEvents);
           assert.equal(replay.terminalReason === 'collision', collision, `${name}: server collision`);
-          assert.equal(actual.distanceCm, replay.distanceCm, `${name}: client/server distance`);
+          // Fractional RAF times lose a few ulps when adding/subtracting the clock origin.
+          if (collision) assert.equal(actual.distanceCm, replay.distanceCm, `${name}: exact collision distance`);
+          else assert(Math.abs(actual.distanceCm - replay.distanceCm) < 1e-7, `${name}: client/server distance`);
           if (collision) {
             assert.equal(actual.distanceCm, generated[collisionIndex].distance_cm, `${name}: first collision`);
             await page.waitForFunction(() => document.getElementById('result-note').textContent !== 'Submitting run to server for verification...', null, { polling: 10 });
@@ -227,18 +229,46 @@ async function main() {
         for (const collisionIndex of [0, 1, 2, null]) {
           const inputs = [];
           for (let i = 0; i < 3; i++) {
-            const o = generated[i], ms = o.distance_cm * 2 - 1;
+            const o = generated[i], ms = server.obstacleArrivalMs(o.distance_cm) - 1;
             const lane = i === collisionIndex ? o.lane : (o.lane + 1) % 3;
             inputs.push([ms, 'Space']);
             if (lane !== 1) inputs.push([ms, lane === 0 ? 'ArrowLeft' : 'ArrowRight']);
           }
           await parity(`multiple_arrivals_first_collision_${collisionIndex}`, inputs,
-            [arrival - 2000, generated[2].distance_cm * 2 + 2000], collisionIndex);
+            [arrival - 2000, server.obstacleArrivalMs(generated[2].distance_cm) + 2000], collisionIndex);
         }
         // Ordinary 60-FPS rendering around arrival, including steering between frames.
         const frames = Array.from({ length: 121 }, (_, i) => arrival - 1000 + i * (1000 / 60));
         await parity('60fps_collision', [[arrival - 1, 'ArrowRight']], frames, 0);
         await parity('60fps_avoidance', [[arrival + 1, 'ArrowRight']], frames);
+        // Generated ramp/capped arrivals, with real input and delayed versus regular frames.
+        for (const targetMs of [30000,60000,90001,120000]) {
+          const index = generated.findIndex(o => server.obstacleArrivalMs(o.distance_cm) >= targetMs);
+          const target = generated[index], at = server.obstacleArrivalMs(target.distance_cm);
+          const prefix = [];
+          for (let i=0;i<index;i++) {
+            const ms=server.obstacleArrivalMs(generated[i].distance_cm)-1;
+            const lane=(generated[i].lane+1)%3;
+            prefix.push([ms,'Space']);
+            if(lane!==1) prefix.push([ms,lane===0?'ArrowLeft':'ArrowRight']);
+          }
+          for (const offset of [-1,0,1]) {
+            const safe=(target.lane+1)%3;
+            const inputs=[...prefix,[at-2,'Space']];
+            if(safe!==1) inputs.push([at-2,safe===0?'ArrowLeft':'ArrowRight']);
+            inputs.push([at+offset,'Space']);
+            if(target.lane!==1) inputs.push([at+offset,target.lane===0?'ArrowLeft':'ArrowRight']);
+            await parity(`progressive_${targetMs}_entry_${offset}`,inputs,[at+10],offset<=0?index:null);
+          }
+          const avoid=[...prefix,[at-1,'Space']];
+          const safe=(target.lane+1)%3;
+          if(safe!==1) avoid.push([at-1,safe===0?'ArrowLeft':'ArrowRight']);
+          await parity(`progressive_${targetMs}_single_frame`,avoid,[at+10]);
+          await parity(`progressive_${targetMs}_60fps`,avoid,
+            [...Array.from({length:61},(_,i)=>at-1000+i*1000/60),at+10]);
+          // Fractional physical crossing must wait for the integer event boundary.
+          await parity(`progressive_${targetMs}_before_integer`,prefix,[at-0.01]);
+        }
         // Resize while occupying every lane; inspect both state and real drawing.
         await page.evaluate(() => window.laneTest.startGameRun());
         for (const [key, expected] of [['ArrowLeft', 0], ['Space', 1], ['ArrowRight', 2]]) {
