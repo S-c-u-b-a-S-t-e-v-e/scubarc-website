@@ -257,15 +257,15 @@ async function runTests() {
   }
 
   // Test 17: Game JS reads sessionStorage for nickname/src
-  console.log("\n17. GAME JS - SESSIONSTORAGE INTEGRATION");
-  const gameJs = fs.readFileSync("commonwealth/surf/game.js", "utf8");
-  if (gameJs.includes("sessionStorage") && gameJs.includes("cc_surf_nickname") && gameJs.includes("cc_surf_src") && gameJs.includes("cc_surf_run_id")) {
-    console.log("   PASS: Game JS reads nickname, src, run_id from sessionStorage");
-    passed++;
-  } else {
-    console.log("   FAIL: Game JS missing sessionStorage integration");
-    failed++;
-  }
+    console.log("\n17. GAME JS - SESSIONSTORAGE INTEGRATION");
+    const gameJs = fs.readFileSync("commonwealth/surf/game.js", "utf8");
+    if (gameJs.includes("sessionStorage") && gameJs.includes("commonwealth_nickname") && gameJs.includes("commonwealth_src") && gameJs.includes("commonwealth_run_id")) {
+      console.log("   PASS: Game JS reads nickname, src, run_id from sessionStorage");
+      passed++;
+    } else {
+      console.log("   FAIL: Game JS missing sessionStorage integration");
+      failed++;
+    }
 
   // Test 18: Game routes to leaderboard with preserved src
   console.log("\n18. GAME ROUTES TO LEADERBOARD WITH PRESERVED SRC");
@@ -289,14 +289,16 @@ async function runTests() {
   }
 
   // Test 20: Server validates impossible timing
-  console.log("\n20. SERVER VALIDATES IMPOSSIBLE TIMING");
-  if (resultCode2.includes("timestamp_ms < lastTime") && resultCode2.includes("timestamp_ms > Date.now")) {
-    console.log("   PASS: Server rejects out-of-order and future timestamps");
-    passed++;
-  } else {
-    console.log("   FAIL: Server timing validation incomplete");
-    failed++;
-  }
+    console.log("\n20. SERVER VALIDATES IMPOSSIBLE TIMING");
+    if (resultCode2.includes("Number.isInteger") && resultCode2.includes("Number.isFinite") && 
+        resultCode2.includes("ts < 0") && resultCode2.includes("ts < lastTime") &&
+        resultCode2.includes("maxAllowedDurationMs") && resultCode2.includes("serverObservedElapsedMs")) {
+      console.log("   PASS: Server rejects non-integer, non-finite, negative, backward timestamps, and validates timeline bounds");
+      passed++;
+    } else {
+      console.log("   FAIL: Server timing validation incomplete");
+      failed++;
+    }
 
   // Test 21: Event log bounded
   console.log("\n21. EVENT LOG BOUNDED (500 max)");

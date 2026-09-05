@@ -49,14 +49,38 @@ function mulberry32(a) {
   };
 }
 
-function validateTiming(events) {
+function validateTiming(events, runCreatedAt) {
   if (events.length === 0) return false;
-  let lastTime = 0;
+
+  const runStartMs = new Date(runCreatedAt).getTime();
+  const runExpiryMs = runStartMs + 10 * 60 * 1000;
+  const nowMs = Date.now();
+  const maxAllowedDurationMs = 10 * 60 * 1000 + 30 * 1000;
+
+  let lastTime = -1;
   for (const event of events) {
-    if (event.timestamp_ms < lastTime - 1000) return false;
-    if (event.timestamp_ms > Date.now() + 60000) return false;
-    lastTime = event.timestamp_ms;
+    const ts = event.timestamp_ms;
+
+    if (!Number.isInteger(ts) || !Number.isFinite(ts)) return false;
+    if (ts < 0) return false;
+    if (ts < lastTime) return false;
+    if (ts > maxAllowedDurationMs) return false;
+
+    lastTime = ts;
   }
+
+  const firstEventTime = events[0]?.timestamp_ms ?? 0;
+  const lastEventTime = events[events.length - 1]?.timestamp_ms ?? 0;
+  const eventTimelineMs = lastEventTime - firstEventTime;
+
+  if (eventTimelineMs > maxAllowedDurationMs) return false;
+
+  const serverObservedElapsedMs = nowMs - runStartMs;
+  if (eventTimelineMs > serverObservedElapsedMs + 30 * 1000) return false;
+
+  if (firstEventTime > 5000) return false;
+  if (lastEventTime > maxAllowedDurationMs) return false;
+
   return true;
 }
 
@@ -114,7 +138,6 @@ export async function onRequestPost({ request, env }) {
     const nickname = String(body.nickname || "").trim().slice(0, 24);
 
     if (!runId || events.length === 0) return json({ error: "invalid_submission" }, 400);
-    if (!validateTiming(events)) return json({ error: "invalid_timing" }, 400);
 
     const contestDay = getContestDay();
     const dailySeed = generateDailySeed(contestDay);
@@ -134,6 +157,8 @@ export async function onRequestPost({ request, env }) {
       await env.COMMUNITY_DB.prepare("UPDATE game_runs SET status = 'expired' WHERE run_id = ?1").bind(runId).run();
       return json({ error: "run_expired" }, 409);
     }
+
+    if (!validateTiming(events, run.created_at)) return json({ error: "invalid_timing" }, 400);
 
     const existingEntry = await env.COMMUNITY_DB.prepare("SELECT entry_id FROM leaderboard WHERE run_id = ?1").bind(runId).first();
     if (existingEntry) return json({ error: "duplicate_run_submission" }, 409);
