@@ -26,6 +26,8 @@
   let events = [];
   let startTime = 0;
   let lastFrameTime = 0;
+  let playableMs = 0;
+  let expiryTimer = null;
   let surfer = { lane: 1, targetLane: 1, y: 0, x: 0, width: 0, height: 0 };
   let obstacles = [];
   let course = [];
@@ -78,7 +80,7 @@
       a = (a + 0x6D2B79F5) >>> 0;
       let t = Math.imul(a ^ (a >>> 15), 1 | a);
       t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) >>> 0;
-      return (t ^ (t >>> 14)) >>> 0;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
   }
 
@@ -171,12 +173,17 @@
     sessionSrc = session.src || "direct";
 
     try {
+      const requestStarted = performance.now();
       const run = await api("/game/start", {
         method: "POST",
         headers: { Authorization: `Bearer ${nodeToken}` },
         body: JSON.stringify({ node_id: nodeId })
       });
+      if (!Number.isFinite(run.remaining_ms) || run.remaining_ms < 0) throw new Error("invalid_run_lifetime");
+      playableMs = Math.max(0, Math.floor(run.remaining_ms - (performance.now() - requestStarted) - 5000));
       currentRun = run;
+      surfer.lane = surfer.targetLane = 1;
+      obstacles = [];
       writeSessionStorage({ runId: run.run_id });
       course = generateCourse(run.seed);
       distanceCm = 0;
@@ -188,6 +195,7 @@
       gameOverlay.hidden = true;
       gameUI.hidden = false;
       updateHUD();
+      expiryTimer = setTimeout(() => endRun("timeout"), playableMs);
       requestAnimationFrame(gameLoop);
     } catch (error) {
       showError(`Failed to start run: ${error.message}`);
@@ -197,6 +205,7 @@
   function gameLoop(timestamp) {
     if (!running) return;
 
+    if (timestamp - startTime >= playableMs) { endRun("timeout"); return; }
     const deltaMs = timestamp - lastFrameTime;
     lastFrameTime = timestamp;
 
@@ -389,6 +398,8 @@
 
   function handleSteer(direction) {
     if (!running || gameState !== "playing") return;
+    if (performance.now() - startTime >= playableMs) { endRun("timeout"); return; }
+    if (events.length >= 499) { endRun("event_limit"); return; }
     if (direction === "left") surfer.targetLane = Math.max(0, surfer.targetLane - 1);
     else if (direction === "right") surfer.targetLane = Math.min(LANES - 1, surfer.targetLane + 1);
     else if (direction === "center") surfer.targetLane = 1;
@@ -402,12 +413,14 @@
   }
 
   function endRun(reason) {
+    if (!running) return;
+    clearTimeout(expiryTimer);
     running = false;
     gameState = "ended";
     cancelAnimationFrame(animationId);
     gameUI.hidden = true;
 
-    const durationMs = Math.round(performance.now() - startTime);
+    const durationMs = Math.min(playableMs, Math.round(performance.now() - startTime));
     events.push({
       timestamp_ms: durationMs,
       event_type: "run_ended",
@@ -415,7 +428,7 @@
     });
 
     resultDistance.textContent = (distanceCm / 160934.4).toFixed(2) + " miles";
-    resultReason.textContent = reason === "collision" ? "CRASH" : "COURSE COMPLETE";
+    resultReason.textContent = reason === "collision" ? "CRASH" : reason === "course_complete" ? "COURSE COMPLETE" : "RUN ENDED";
     resultReason.style.color = reason === "collision" ? "#f87171" : "#4ecdc4";
     resultNote.textContent = "Submitting run to server for verification...";
     resultDisplay.hidden = false;

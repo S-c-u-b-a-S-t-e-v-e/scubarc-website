@@ -1,4 +1,4 @@
-import { json, readJson, newId, authenticateNode, clampInt } from "../_lib.js";
+import { json, readJson, newId, authenticateNode } from "../_lib.js";
 
 function getContestDay() {
   const now = new Date();
@@ -45,82 +45,54 @@ function mulberry32(a) {
     a = (a + 0x6D2B79F5) >>> 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) >>> 0;
-    return (t ^ (t >>> 14)) >>> 0;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
 
-function validateTiming(events, runCreatedAt) {
-  if (events.length === 0) return false;
-
-  const runStartMs = new Date(runCreatedAt).getTime();
-  const runExpiryMs = runStartMs + 10 * 60 * 1000;
-  const nowMs = Date.now();
-  const maxAllowedDurationMs = 10 * 60 * 1000 + 30 * 1000;
+function validateTiming(events, runCreatedAt, runExpiresAt) {
+  const runStartMs = Date.parse(runCreatedAt);
+  const authorizedRunMs = Date.parse(runExpiresAt) - runStartMs;
+  if (!Number.isFinite(authorizedRunMs) || authorizedRunMs < 0) return false;
+  if (events.length < 2 || events[0]?.event_type !== "run_started" ||
+      events[0].timestamp_ms !== 0 || events.at(-1)?.event_type !== "run_ended") return false;
 
   let lastTime = -1;
-  for (const event of events) {
-    const ts = event.timestamp_ms;
-
-    if (!Number.isInteger(ts) || !Number.isFinite(ts)) return false;
-    if (ts < 0) return false;
-    if (ts < lastTime) return false;
-    if (ts > maxAllowedDurationMs) return false;
-
+  for (let i = 0; i < events.length; i++) {
+    const event = events[i];
+    const ts = event?.timestamp_ms;
+    // Inclusive timeline boundary: exactly the issued TTL is allowed, never TTL + tolerance.
+    if (!Number.isSafeInteger(ts) || ts < 0 || ts < lastTime || ts > authorizedRunMs) return false;
+    if (i > 0 && i < events.length - 1 &&
+        !["steer_left", "steer_right", "steer_center"].includes(event.event_type)) return false;
     lastTime = ts;
   }
-
-  const firstEventTime = events[0]?.timestamp_ms ?? 0;
-  const lastEventTime = events[events.length - 1]?.timestamp_ms ?? 0;
-  const eventTimelineMs = lastEventTime - firstEventTime;
-
-  if (eventTimelineMs > maxAllowedDurationMs) return false;
-
-  const serverObservedElapsedMs = nowMs - runStartMs;
-  if (eventTimelineMs > serverObservedElapsedMs + 30 * 1000) return false;
-
-  if (firstEventTime > 5000) return false;
-  if (lastEventTime > maxAllowedDurationMs) return false;
-
-  return true;
+  // Arrival/clock tolerance cannot extend the independent lifetime bound above.
+  return lastTime <= Date.now() - runStartMs + 30000;
 }
 
 function simulateSurfRun(course, events) {
   let lane = 1;
-  let distanceCm = 0;
-  let durationMs = 0;
+  const endMs = events.at(-1).timestamp_ms;
   const speedCmPerMs = 0.5;
-  let terminalReason = "timeout";
-  
-  let eventIdx = 0;
-  let nextEventTime = events[0] ? events[0].timestamp_ms : Infinity;
-  
+  let eventIdx = 1;
   for (const obstacle of course) {
-    const timeToObstacle = (obstacle.distance_cm - distanceCm) / speedCmPerMs;
-    
-    while (eventIdx < events.length && events[eventIdx].timestamp_ms <= durationMs + timeToObstacle) {
-      const event = events[eventIdx];
+    const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+    if (obstacleMs > endMs) break;
+    while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
+      const event = events[eventIdx++];
       if (event.event_type === "steer_left") lane = Math.max(0, lane - 1);
       else if (event.event_type === "steer_right") lane = Math.min(2, lane + 1);
       else if (event.event_type === "steer_center") lane = 1;
-      eventIdx++;
     }
-    
-    durationMs += timeToObstacle;
-    distanceCm = obstacle.distance_cm;
-    
     if (lane === obstacle.lane) {
-      terminalReason = "collision";
-      break;
+      return { distanceCm: obstacle.distance_cm, durationMs: obstacleMs, terminalReason: "collision" };
     }
   }
-  
-  if (terminalReason !== "collision") {
-    durationMs += (course[course.length - 1]?.distance_cm || 2000000 - distanceCm) / speedCmPerMs;
-    distanceCm = Math.max(distanceCm, course[course.length - 1]?.distance_cm || 2000000);
-    terminalReason = "course_complete";
-  }
-  
-  return { distanceCm, durationMs, terminalReason };
+  const courseEndMs = course.at(-1).distance_cm / speedCmPerMs;
+  const durationMs = Math.min(endMs, courseEndMs);
+  // Includes travel after the last passed obstacle; terminal payload is never scoring input.
+  return { distanceCm: durationMs * speedCmPerMs, durationMs,
+    terminalReason: endMs >= courseEndMs ? "course_complete" : "timeout" };
 }
 
 export async function onRequestPost({ request, env }) {
@@ -158,13 +130,22 @@ export async function onRequestPost({ request, env }) {
       return json({ error: "run_expired" }, 409);
     }
 
-    if (!validateTiming(events, run.created_at)) return json({ error: "invalid_timing" }, 400);
+    if (!validateTiming(events, run.created_at, run.expires_at)) return json({ error: "invalid_timing" }, 400);
 
     const existingEntry = await env.COMMUNITY_DB.prepare("SELECT entry_id FROM leaderboard WHERE run_id = ?1").bind(runId).first();
     if (existingEntry) return json({ error: "duplicate_run_submission" }, 409);
 
     const course = generateCourse(dailySeed);
     const result = simulateSurfRun(course, events);
+
+    const authorizedRunMs = Date.parse(run.expires_at) - Date.parse(run.created_at);
+    if (!Number.isFinite(result.durationMs) || !Number.isFinite(result.distanceCm) ||
+        result.durationMs < 0 || result.distanceCm < 0 || result.durationMs > authorizedRunMs ||
+        result.durationMs > events.at(-1).timestamp_ms ||
+        result.distanceCm !== result.durationMs * 0.5 ||
+        result.distanceCm > course.at(-1).distance_cm) {
+      return json({ error: "invalid_replay" }, 400);
+    }
 
     const nowIso = new Date().toISOString();
     const startedAt = run.created_at;
@@ -174,10 +155,12 @@ export async function onRequestPost({ request, env }) {
         `UPDATE game_runs SET status = 'completed', server_score = ?1, distance_cm = ?2, duration_ms = ?3, 
          event_count = ?4, terminal_reason = ?5, completed_at = ?6, started_at = ?7 WHERE run_id = ?8`
       ).bind(result.distanceCm, result.distanceCm, result.durationMs, events.length, result.terminalReason, nowIso, startedAt, runId),
+      // Stable per-run event IDs make concurrent duplicate batches fail atomically,
+      // rolling back their score update as well as their event inserts.
       ...events.map((event, idx) => env.COMMUNITY_DB.prepare(
         `INSERT INTO game_events (event_id, run_id, sequence, timestamp_ms, event_type, payload)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6)`
-      ).bind(newId("cge"), runId, idx, event.timestamp_ms, event.event_type, String(event.payload || "{}").slice(0, 500)))
+      ).bind(`cge_${runId}_${idx}`, runId, idx, event.timestamp_ms, event.event_type, String(event.payload || "{}").slice(0, 500)))
     ]);
 
     let leaderboardEntry = null;
