@@ -58,7 +58,7 @@
 
     surfer.width = rect.width / LANES * 0.6;
     surfer.height = surfer.width * 1.5;
-    surfer.x = rect.width / 2 - surfer.width / 2;
+    surfer.x = (canvas.width / dpr) / LANES * (surfer.lane + 0.5) - surfer.width / 2;
     surfer.y = rect.height - surfer.height - 40;
   }
 
@@ -231,23 +231,39 @@
   }
 
   function update(deltaMs) {
+    const previousDistanceCm = distanceCm;
     const distanceDelta = speedCmPerMs * deltaMs;
     distanceCm += distanceDelta;
 
-    surfer.lane += (surfer.targetLane - surfer.lane) * 0.15;
+    // Match the discrete lanes recorded by steering events and server replay.
+    surfer.lane = surfer.targetLane;
     surfer.x = (canvas.width / dpr) / LANES * (surfer.lane + 0.5) - surfer.width / 2;
 
-    for (const obstacle of obstacles) {
-      const obstacleScreenY = surfer.y - (obstacle.distance_cm - distanceCm) * 0.001;
-      if (obstacleScreenY > surfer.y - surfer.height && obstacleScreenY < surfer.y + surfer.height) {
-        if (Math.round(surfer.lane) === obstacle.lane) {
+    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
+
+    // An obstacle arrives at the rendered surfer center at its course distance.
+    // Check the swept distance so a delayed frame cannot skip an arrival.
+    // Replay recorded inputs at each arrival, not at the latest rendered lane.
+    // The generated course and event history are both chronologically ordered.
+    let collisionLane = 1;
+    let eventIdx = 1;
+    for (const obstacle of course) {
+      if (obstacle.distance_cm > previousDistanceCm && obstacle.distance_cm <= distanceCm) {
+        const obstacleMs = obstacle.distance_cm / speedCmPerMs;
+        while (eventIdx < events.length && events[eventIdx].timestamp_ms <= obstacleMs) {
+          const event = events[eventIdx++];
+          if (event.event_type === "steer_left") collisionLane = Math.max(0, collisionLane - 1);
+          else if (event.event_type === "steer_right") collisionLane = Math.min(2, collisionLane + 1);
+          else if (event.event_type === "steer_center") collisionLane = 1;
+        }
+        if (collisionLane === obstacle.lane) {
+          distanceCm = obstacle.distance_cm;
+          obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
           endRun("collision");
           return;
         }
       }
     }
-
-    obstacles = course.filter(o => o.distance_cm > distanceCm - 5000 && o.distance_cm < distanceCm + 50000);
 
     if (obstacles.length === 0 && distanceCm > course[course.length - 1]?.distance_cm) {
       endRun("course_complete");
@@ -308,7 +324,7 @@
 
   function drawObstacles(cw, ch) {
     for (const obstacle of obstacles) {
-      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * 0.001;
+      const screenY = surfer.y - (obstacle.distance_cm - distanceCm) * (surfer.y / 50000);
       if (screenY < -50 || screenY > ch + 50) continue;
 
       const laneX = (cw / LANES) * (obstacle.lane + 0.5);
