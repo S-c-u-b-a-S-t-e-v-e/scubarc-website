@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Commonwealth Surf — Live</title>
+  <meta name="description" content="Commonwealth Surf live spectator display for Genesis Weekend." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/commonwealth/commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Commonwealth Surf — Live" />
+  <meta property="og:description" content="Live spectator display for Genesis Weekend. Current player, top scores, QR to play." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/live/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Commonwealth Surf — Live" />
+  <meta name="twitter:description" content="Live TV display. Current player, top 5, today's stats." />
+  
+
+</head>
+<body>
+<a class="skip-link" href="#live-main">Skip to live display</a>
+<div class="live-page" id="live-page">
+  <header class="live-header">
+    <h1 class="title">COMMONWEALTH SURF</h1>
+    <p class="subtitle">LIVE — VIRGINIA BEACH</p>
+  </header>
+  <main id="live-main" class="live-main">
+    <div class="live-current">
+      <div class="live-current-player" id="current-player">
+        <div class="label">NOW SURFING</div>
+        <div class="nickname waiting" id="current-nickname">Waiting for player…</div>
+        <div class="distance" id="current-distance" hidden></div>
+      </div>
+      <div class="live-qr" id="live-qr">
+        <div class="label">SCAN TO PLAY</div>
+        <img id="qr-image" src="" alt="QR code to play Commonwealth Surf" />
+      </div>
+    </div>
+    <div>
+      <section class="live-leaderboard" aria-labelledby="lb-title">
+        <h2 id="lb-title">TODAY'S LEADERS</h2>
+        <div class="live-leaderboard-list" id="live-leaderboard">
+          <div class="live-leaderboard-item">
+            <span class="rank">1</span>
+            <span class="nickname">—</span>
+            <span class="distance">— mi</span>
+          </div>
+          <div class="live-leaderboard-item">
+            <span class="rank">2</span>
+            <span class="nickname">—</span>
+            <span class="distance">— mi</span>
+          </div>
+          <div class="live-leaderboard-item">
+            <span class="rank">3</span>
+            <span class="nickname">—</span>
+            <span class="distance">— mi</span>
+          </div>
+          <div class="live-leaderboard-item">
+            <span class="rank">4</span>
+            <span class="nickname">—</span>
+            <span class="distance">— mi</span>
+          </div>
+          <div class="live-leaderboard-item">
+            <span class="rank">5</span>
+            <span class="nickname">—</span>
+            <span class="distance">— mi</span>
+          </div>
+        </div>
+      </section>
+      <section class="live-today" aria-labelledby="today-title">
+        <h2 id="today-title">TODAY</h2>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value" id="today-players">—</div>
+            <div class="stat-label">players</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="today-runs">—</div>
+            <div class="stat-label">runs</div>
+          </div>
+          <div class="stat">
+            <div class="stat-value" id="today-best">—</div>
+            <div class="stat-label">best distance</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="/commonwealth/live/live.js" defer></script>
+</body>
+</html>

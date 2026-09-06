@@ -2,44 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Contact &mdash; Scuba Research Collective</title>
-  <meta name="description" content="Contact Scuba Research Collective for research and partnership inquiries." />
+  <title>Contact — Scuba Research Collective</title>
+  <meta name="description" content="Contact Scuba Research Collective for research, partnership, sponsorship, institutional support, Commonwealth.ai, or general inquiries." />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
+  <script src="site.js" defer></script>
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Contact — Scuba Research Collective" />
+  <meta property="og:description" content="Research, partnership, sponsorship, Commonwealth.ai, expertise. Six routing channels to the right team." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/contact.html" />
+  <meta property="og:site_name" content="Scuba Research Collective" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Contact — Scuba Research Collective" />
+  <meta name="twitter:description" content="Six channels: general, research, information, sponsorship, Commonwealth.ai, expertise." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
 <header class="site-header">
-  <a class="brand" href="index.html" aria-label="Scuba Research Collective home">
+  <a class="brand" href="/" aria-label="Scuba Research Collective home">
     <span>SCUBA RESEARCH COLLECTIVE</span>
   </a>
-  <nav aria-label="Primary navigation">
-      <a href="index.html">Home</a>
-      <a href="mission.html">Mission</a>
-      <a href="research.html">Research</a>
-      <a href="public-benefit.html">Public Benefit</a>
-      <a href="foundation.html">Foundation</a>
-      <a href="governance.html">Governance</a>
-      <a href="contact.html" aria-current="page">Contact</a>
-  </nav>
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
+        <a href="/">Home</a>
+        <a href="/mission.html">Mission</a>
+        <a href="/research.html">Research</a>
+        <a href="/public-benefit.html">Public Benefit</a>
+        <a href="/compute.html">Community Compute</a>
+        <a href="/commonwealth/">Commonwealth.ai</a>
+        <a href="/foundation.html">Foundation</a>
+        <a href="/governance.html">Governance</a>
+        <a href="/contact.html" aria-current="page">Contact</a>
+    </nav>
 </header>
 <main id="main-content">
 
 <section class="page-hero">
   <span class="eyebrow">Contact</span>
   <h1>Research, partnership, and public-interest inquiries.</h1>
-  <p class="lead">Use the address that best matches the subject of your message.</p>
+  <p class="lead">Choose the channel that best matches your message. We route every inquiry to the right team.</p>
 </section>
 
 <section>
   <div class="card-grid three">
-    <article class="card"><h3>General inquiries</h3><p><a class="text-link" href="mailto:contact@scubaresearchcollective.com">contact@scubaresearchcollective.com</a></p></article>
-    <article class="card"><h3>Research</h3><p><a class="text-link" href="mailto:research@scubaresearchcollective.com">research@scubaresearchcollective.com</a></p></article>
-    <article class="card"><h3>Information</h3><p><a class="text-link" href="mailto:information@scubaresearchcollective.com">information@scubaresearchcollective.com</a></p></article>
+    <article class="card">
+      <h3>General inquiries</h3>
+      <p>Media, speaking, general questions about ScubaRC.</p>
+      <p><a class="text-link" href="mailto:contact@scubaresearchcollective.com">contact@scubaresearchcollective.com</a></p>
+    </article>
+    <article class="card">
+      <h3>Research</h3>
+      <p>Research collaboration, data sharing, co-authorship, technical evaluation.</p>
+      <p><a class="text-link" href="mailto:research@scubaresearchcollective.com">research@scubaresearchcollective.com</a></p>
+    </article>
+    <article class="card">
+      <h3>Information</h3>
+      <p>Public records, governance documents, Foundation status, partnership vetting.</p>
+      <p><a class="text-link" href="mailto:information@scubaresearchcollective.com">information@scubaresearchcollective.com</a></p>
+    </article>
+    <article class="card">
+      <h3>Sponsorship & institutional support</h3>
+      <p>Corporate sponsorship, grant alignment, government contracting, philanthropic interest (non-tax-deductible at this time).</p>
+      <p><a class="text-link" href="mailto:contact@scubaresearchcollective.com">contact@scubaresearchcollective.com</a></p>
+    </article>
+    <article class="card">
+      <h3>Commonwealth.ai</h3>
+      <p>Genesis Weekend participation, compute contribution, Surf game, leaderboard, live display.</p>
+      <p><a class="text-link" href="mailto:contact@scubaresearchcollective.com">contact@scubaresearchcollective.com</a></p>
+    </article>
+    <article class="card">
+      <h3>Expertise & advisory</h3>
+      <p>Subject-matter experts, practitioners, operators offering pro-bono or contracted advisory capacity.</p>
+      <p><a class="text-link" href="mailto:research@scubaresearchcollective.com">research@scubaresearchcollective.com</a></p>
+    </article>
   </div>
 </section>
 
-<section class="notice">ScubaRC does not provide emergency, clinical, legal, or crisis services through this website.</section>
+<section class="notice">
+  <strong>Scope notice:</strong> ScubaRC does not provide emergency, clinical, legal, therapeutic, operational, or crisis services through this website.
+</section>
 
 </main>
 <footer class="site-footer">

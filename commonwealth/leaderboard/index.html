@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Commonwealth Surf — Leaderboard</title>
+  <meta name="description" content="Commonwealth Surf daily leaderboard — Server-authoritative scores for the Genesis Weekend pilot." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/commonwealth/commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Commonwealth Surf — Leaderboard" />
+  <meta property="og:description" content="Server-authoritative scores. TODAY • THIS WEEK • ALL TIME. Highest verified distance wins the $25 prize." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/leaderboard/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Commonwealth Surf — Leaderboard" />
+  <meta name="twitter:description" content="Today's leaderboard. $25 prize. Server-verified." />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Scuba Research Collective home">
+    <span>SCUBA RESEARCH COLLECTIVE</span>
+  </a>
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/mission.html">Mission</a>
+    <a href="/research.html">Research</a>
+    <a href="/public-benefit.html">Public Benefit</a>
+    <a href="/compute.html">Community Compute</a>
+    <a href="/foundation.html">Foundation</a>
+    <a href="/governance.html">Governance</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+</header>
+<main id="main-content">
+  <section class="page-hero leaderboard-hero">
+    <span class="eyebrow">COMMONWEALTH SURF</span>
+    <h1>TODAY'S LEADERBOARD</h1>
+    <p class="lead">Server-authoritative scores for the Genesis Weekend pilot. Highest verified distance wins $25. Updated every few seconds.</p>
+    <div class="actions">
+      <a class="button" href="/commonwealth/">← BACK TO COMMONWEALTH</a>
+      <a class="button primary" href="/commonwealth/surf/">PLAY SURF</a>
+      <a class="button" href="/commonwealth/live/">LIVE TV DISPLAY</a>
+    </div>
+  </section>
+
+  <section class="leaderboard-stats" id="leaderboard-stats" aria-live="polite">
+    <div class="stat today-stat">
+      <div class="stat-value" id="stat-players">—</div>
+      <div class="stat-label">Players today</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-runs">—</div>
+      <div class="stat-label">Completed runs</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value" id="stat-best">—</div>
+      <div class="stat-label">Best distance (mi)</div>
+    </div>
+  </section>
+
+  <div class="leaderboard-tabs" id="leaderboard-tabs" role="tablist" aria-label="Leaderboard timeframe">
+    <button class="button today-tab" role="tab" aria-selected="true" data-tab="today" id="tab-today">TODAY</button>
+    <button class="button" role="tab" aria-selected="false" data-tab="week" id="tab-week">THIS WEEK</button>
+    <button class="button" role="tab" aria-selected="false" data-tab="all" id="tab-all">ALL TIME</button>
+  </div>
+
+  <section aria-labelledby="lb-heading">
+    <h2 id="lb-heading" class="surf-flow-style-7">Leaderboard entries</h2>
+    <div id="leaderboard-container">
+      <table class="leaderboard-table" id="leaderboard-table">
+        <thead>
+          <tr>
+            <th scope="col" class="rank">#</th>
+            <th scope="col" class="nickname">Nickname</th>
+            <th scope="col" class="distance">Distance (mi)</th>
+            <th scope="col" class="achieved">Achieved</th>
+            <th scope="col" class="status-col">Status</th>
+          </tr>
+        </thead>
+        <tbody id="leaderbody">
+          <tr class="leaderboard-empty">
+            <td colspan="5">Loading leaderboard…</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="surf-flow-style-8 callout">
+    <span class="kicker">Contest rules</span>
+    <h2>Commonwealth Surf — Genesis Weekend</h2>
+    <div class="rules-grid">
+      <ul class="rule-list">
+        <li>Free to play. No purchase necessary.</li>
+        <li>Unlimited attempts.</li>
+        <li>Highest verified distance today wins $25.</li>
+        <li>Tie: first valid score achieved.</li>
+        <li>Server leaderboard is authoritative.</li>
+        <li>ScubaRC organizer/exhibition entries are not prize eligible.</li>
+      </ul>
+      <ul class="rule-list">
+        <li>No purchase of food or alcohol required.</li>
+        <li>Alcohol is not part of scoring, entry, additional attempts, or prizes.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="surf-flow-style-9 commonwealth-privacy">
+    <span class="kicker">Privacy</span>
+    <h2>Minimal public data</h2>
+    <p>Only nickname, distance, and achievement time are shown. No participant IDs, node IDs, tokens, IP information, raw events, or precise locality are exposed. Exhibition entries are clearly marked.</p>
+  </section>
+</main>
+<footer class="site-footer">
+  <p><small>This is an independent Scuba Research Collective initiative and is not a program of or endorsed by the Commonwealth of Virginia.</small></p>
+  <div><strong>Scuba Research Collective</strong><br />Veteran-founded research organization. Motto: <em>E malicia ad fulmina</em>.</div>
+  <div>This site is operated by Scuba Research Collective LLC. Scuba Research Collective Foundation is in formation as a separate public-benefit entity.</div>
+  <div>Commonwealth.ai is a contained ScubaRC pilot. Nothing on this site constitutes medical, legal, therapeutic, operational, or investment advice.</div>
+</footer>
+<script src="/commonwealth/commonwealth.js" defer></script>
+<script src="/commonwealth/leaderboard/leaderboard.js" defer></script>
+</body>
+</html>

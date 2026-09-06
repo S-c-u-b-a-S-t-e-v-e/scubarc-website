@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Donate Compute — Commonwealth.ai</title>
+  <meta name="description" content="Test voluntary browser compute infrastructure with synthetic Alpha work." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/commonwealth/commonwealth.css" />
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Donate Compute — Commonwealth.ai" />
+  <meta property="og:description" content="Test synthetic browser compute infrastructure. One bounded work unit. No file uploads. No shell access. Voluntary." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/compute/" />
+  <meta property="og:site_name" content="Commonwealth.ai" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Donate Compute — Commonwealth.ai" />
+  <meta name="twitter:description" content="Voluntary synthetic browser compute infrastructure testing." />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Scuba Research Collective home">
+    <span>SCUBA RESEARCH COLLECTIVE</span>
+  </a>
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
+    <a href="/">Home</a>
+    <a href="/mission.html">Mission</a>
+    <a href="/research.html">Research</a>
+    <a href="/public-benefit.html">Public Benefit</a>
+    <a href="/compute.html">Community Compute</a>
+    <a href="/foundation.html">Foundation</a>
+    <a href="/governance.html">Governance</a>
+    <a href="/contact.html">Contact</a>
+  </nav>
+</header>
+<main id="main-content">
+  <section class="page-hero compute-redirect">
+    <span class="eyebrow">COMMONWEALTH.AI</span>
+    <h1>DONATE COMPUTE</h1>
+    <p class="lead">Help test governed browser compute infrastructure with the synthetic deterministic mix32_v1 workload, not a scientific research calculation. Your device runs one bounded work unit locally in the browser and returns a constrained result receipt for verification.</p>
+    <div class="actions">
+      <a class="button primary" href="/compute.html">CONTRIBUTE COMPUTE NOW</a>
+      <a class="button" href="/commonwealth/">← BACK TO COMMONWEALTH</a>
+      <a class="button" href="/commonwealth/surf/">PLAY COMMONWEALTH SURF</a>
+    </div>
+    <p class="commonwealth-trust">No arbitrary file uploads. No shell access. No access to your personal files. Stop by closing the page.</p>
+  </section>
+
+  <section class="split commonwealth-explain compute-explain">
+    <div>
+      <span class="kicker">How it works</span>
+      <h2>Compute is contributed. Authority is not.</h2>
+      <p>The Community Compute Alpha is intentionally constrained to harmless synthetic test work. Volunteer devices are treated as untrusted execution nodes; returned results are candidates until independently verified by the server.</p>
+    </div>
+    <div class="card-grid three">
+      <article class="card">
+        <span class="status">1</span>
+        <h3>Register capability</h3>
+        <p>The browser reports a small capability profile such as logical processors and supported web features. ScubaRC does not inspect personal files.</p>
+      </article>
+      <article class="card">
+        <span class="status">2</span>
+        <h3>Receive bounded work</h3>
+        <p>The task governor issues a constrained Work Envelope with a work ID, fixed task type, input, resource limit, and expiration.</p>
+      </article>
+      <article class="card">
+        <span class="status">3</span>
+        <h3>Return a receipt</h3>
+        <p>The node returns a small structured result. The server validates the receipt before counting it as a verified Alpha work unit.</p>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <h2>Testing infrastructure and participation</h2>
+    <p>Genesis Alpha is testing the infrastructure and participation model, not claiming scientific discovery. With your explicit contribution, the browser becomes a temporary compute node. It reports device class, platform, logical processors, WebAssembly support, WebGPU availability and a browser user-agent string in the enrollment payload. Optional participant information and authenticated pseudonymous-node work/result requests are also sent.</p>
+    <p>The server chooses bounded work. The fixed browser Web Worker accepts only mix32_v1 and integer inputs, with an iteration maximum of 5,000,000. It does not download arbitrary task code. Closing/stopping the page ends participation. Results include work_id, result, runtime and client version, authenticated with the pseudonymous node credential and verified by the server before acceptance.</p>
+    <p><strong>VOLUNTEER DEVICE != TRUSTED DEVICE</strong></p>
+    <p><strong>RETURNED RESULT != AUTHORITATIVE RESULT</strong></p>
+    <p><strong>COMPUTE CONTRIBUTED != AUTHORITY GRANTED</strong></p>
+    <p>A volunteer browser may fail, disconnect or behave maliciously. It has no research-state authority. The application does not upload personal files or grant shell, remote-control, desktop application, camera or microphone access. Network infrastructure may observe normal connection metadata.</p>
+    <p>Future public-data scientific experiments require separate security, privacy and scientific-validation gates. They are not operating now. <a href="/compute.html#alpha-explained">Read the complete capability, payload and security explanation.</a></p>
+  </section>
+  <section class="callout compute-boundary">
+    <span class="kicker">Alpha boundary</span>
+    <h2>This is a research infrastructure demonstration.</h2>
+    <p>Community Compute Alpha is intentionally constrained to harmless synthetic test work. It does not process classified, CUI, medical, private, or other sensitive research data. Participation is entirely voluntary.</p>
+  </section>
+</main>
+<footer class="site-footer">
+  <p><small>This is an independent Scuba Research Collective initiative and is not a program of or endorsed by the Commonwealth of Virginia.</small></p>
+  <div><strong>Scuba Research Collective</strong><br />Veteran-founded research organization. Motto: <em>E malicia ad fulmina</em>.</div>
+  <div>This site is operated by Scuba Research Collective LLC. Scuba Research Collective Foundation is in formation as a separate public-benefit entity.</div>
+  <div>Commonwealth.ai is a contained ScubaRC pilot. Nothing on this site constitutes medical, legal, therapeutic, operational, or investment advice.</div>
+</footer>
+<script src="/commonwealth/commonwealth.js" defer></script>
+</body>
+</html>

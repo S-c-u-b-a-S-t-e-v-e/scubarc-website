@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Community Compute — Scuba Research Collective</title>
+  <meta name="description" content="Test voluntary browser compute infrastructure with the synthetic Community Compute Alpha workload." />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="compute.css" />
+    <script src="site.js" defer></script>
+  
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Community Compute — Scuba Research Collective" />
+  <meta property="og:description" content="Test governed browser compute infrastructure. Synthetic Alpha work, voluntary and bounded." />
+  <meta property="og:url" content="https://scubaresearchcollective.com/compute.html" />
+  <meta property="og:site_name" content="Scuba Research Collective" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Community Compute — Scuba Research Collective" />
+  <meta name="twitter:description" content="Contribute to a synthetic browser compute infrastructure test." />
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<header class="site-header">
+  <a class="brand" href="/" aria-label="Scuba Research Collective home"><span>SCUBA RESEARCH COLLECTIVE</span></a>
+  <button class="nav-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="primary-nav">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </button>
+  <div class="nav-overlay" aria-hidden="true"></div>
+  <nav id="primary-nav" aria-label="Primary navigation">
+      <a href="/">Home</a>
+      <a href="/mission.html">Mission</a>
+      <a href="/research.html">Research</a>
+      <a href="/public-benefit.html">Public Benefit</a>
+      <a href="/compute.html" aria-current="page">Community Compute</a>
+      <a href="/commonwealth/">Commonwealth.ai</a>
+      <a href="/foundation.html">Foundation</a>
+      <a href="/governance.html">Governance</a>
+      <a href="/contact.html">Contact</a>
+    </nav>
+</header>
+
+<main id="main-content">
+  <section class="page-hero compute-hero">
+    <span class="eyebrow">Community Compute Alpha</span>
+    <h1>Built by the Commonwealth.</h1>
+    <p class="lead">Help test governed browser compute infrastructure with a synthetic Alpha workload. Your device receives one bounded work unit, computes locally in the browser, and returns a constrained result receipt for verification.</p>
+    <div class="actions">
+          <a class="button primary" href="#contribute">Contribute compute</a>
+          <a class="button" href="/commonwealth/surf/">Play Commonwealth Surf</a>
+          <a class="button" href="#how-it-works">How it works</a>
+        </div>
+    <p class="compute-trust-line">No arbitrary file uploads. No shell access. No access to your personal files. Stop by closing the page.</p>
+  </section>
+
+  <section aria-labelledby="cohort-heading">
+    <div class="section-heading">
+      <span class="kicker">Founding cohort</span>
+      <h2 id="cohort-heading">A live test of community-powered research infrastructure.</h2>
+    </div>
+    <div class="stat-grid" id="compute-stats" aria-live="polite">
+      <div class="stat-card"><strong id="stat-contributors">—</strong><span>contributors enrolled</span></div>
+      <div class="stat-card"><strong id="stat-nodes">—</strong><span>devices registered</span></div>
+      <div class="stat-card"><strong id="stat-threads">—</strong><span>logical CPU threads</span></div>
+      <div class="stat-card"><strong id="stat-verified">—</strong><span>verified work units</span></div>
+      <div class="stat-card"><strong id="stat-hours">—</strong><span>compute hours contributed</span></div>
+    </div>
+  </section>
+
+  <section class="split" id="contribute">
+    <div>
+      <span class="kicker">Contribute now</span>
+      <h2>Run one safe Alpha work unit.</h2>
+      <p>The Alpha uses a fixed browser workload. It does not download arbitrary executable code. You choose when to start, and computation ends when the work unit completes or you stop the page.</p>
+      <div class="device-readout" id="device-readout" aria-live="polite"></div>
+    </div>
+    <form class="compute-form" id="compute-form">
+      <label>
+              Display name <span class="muted-text">(optional)</span>
+              <input type="text" name="display_name" maxlength="80" autocomplete="name" />
+            </label>
+            <label>
+              Virginia locality <span class="muted-text">(optional)</span>
+              <input type="text" name="locality" maxlength="100" placeholder="Virginia Beach, Richmond, Roanoke…" />
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" name="virginia_opt_in" />
+              <span>I am currently participating from Virginia.</span>
+            </label>
+      <label class="checkbox-row required-row">
+        <input type="checkbox" name="consent" required />
+        <span>I understand this is voluntary, may use electricity, is not represented as a charitable tax deduction, and I may stop at any time.</span>
+      </label>
+      <div id="turnstile-slot"></div>
+      <button class="button primary compute-start" type="submit" id="compute-start">Start my first work unit</button>
+      <p class="form-status" id="compute-status" role="status"></p>
+    </form>
+  </section>
+
+  <section id="work-panel" class="work-panel" hidden aria-labelledby="work-heading">
+    <span class="kicker">Work unit</span>
+    <h2 id="work-heading">Your computer is contributing.</h2>
+    <progress class="progress-track" id="compute-progress" max="100" value="0" aria-label="Compute work progress"></progress>
+    <p id="work-detail">Preparing bounded work…</p>
+    <div class="receipt-card" id="receipt-card" hidden></div>
+  </section>
+
+  <section id="how-it-works">
+    <div class="section-heading">
+      <span class="kicker">How it works</span>
+      <h2>Compute is contributed. Authority is not.</h2>
+    </div>
+    <div class="card-grid three">
+      <article class="card"><span class="status">1</span><h3>Register capability</h3><p>The browser reports a small capability profile such as logical processors and supported web features. ScubaRC does not inspect personal files.</p></article>
+      <article class="card"><span class="status">2</span><h3>Receive bounded work</h3><p>The task governor issues a constrained Work Envelope with a work ID, fixed task type, input, resource limit, and expiration.</p></article>
+      <article class="card"><span class="status">3</span><h3>Return a receipt</h3><p>The node returns a small structured result. The server validates the receipt before counting it as a verified Alpha work unit.</p></article>
+    </div>
+  </section>
+
+  <section id="alpha-explained">
+    <div class="section-heading"><span class="kicker">The current Alpha</span><h2>A temporary browser compute node</h2></div>
+    <p>When you explicitly contribute, your browser becomes a temporary browser compute node for one bounded work unit. Genesis Alpha is testing the infrastructure and participation model, not claiming scientific discovery.</p>
+    <h3>What your browser reports</h3>
+    <p>The enrollment payload includes a limited capability profile: device class (mobile or desktop), platform, logical processors, WebAssembly support, WebGPU availability, and the browser user-agent string (up to 300 characters). These are browser reports, not a trusted hardware inventory. Reporting WebGPU availability does not mean this workload uses the GPU.</p>
+    <p>This capability report does not grant ScubaRC shell access, arbitrary code execution authority, access to personal files or desktop applications, or camera/microphone access. The Community Compute application does not upload your personal files or grant remote-control/shell access.</p>
+    <h3>The server chooses allowed work</h3>
+    <p>The server governor assigns a work envelope with a work_id, fixed work_type, bounded inputs (an integer seed and iteration count), an iteration resource limit, expires_at for assignment validity, and a max_result_bytes limit. Volunteer devices do not choose authoritative research tasks and are not trusted with research-state authority. The server checks the assignment and result before acceptance.</p>
+    <h3>What runs locally today</h3>
+    <p>The current Alpha workload, mix32_v1, is a synthetic deterministic test workload, not a scientific research calculation. It runs locally inside a browser Web Worker. The Alpha does not download arbitrary task code from the server: compute-worker.js contains the fixed implementation, accepts only the approved work_type, and validates integer inputs and bounded iterations. The present worker iteration maximum is 5,000,000; the governor currently issues smaller workloads, capped at 1,500,000 iterations.</p>
+    <p>Participation is voluntary. Closing/stopping the page ends participation; a work unit also stops when it completes. No compute work completion is required to play Commonwealth Surf.</p>
+    <h3>Results are candidates for verification</h3>
+    <p>The browser returns a constrained result containing work_id, result, runtime_ms and client_version, together with node_id. Its pseudonymous node credential authenticates the request. The server checks the assignment and compares the result with its expected deterministic value before issuing a receipt and counting a verified Alpha work unit. A returned result is not authoritative simply because a volunteer device produced it.</p>
+    <h3>What the application sends</h3>
+    <p>Application payloads include the limited browser capability profile; optional display name, locality and Virginia participation information deliberately entered by the participant; consent and human-verification information; work/result metadata; runtime/client information; and authenticated pseudonymous-node requests. Optional locality and Virginia participation are for internal/aggregate research measurement, not a public Surf player label. Players from other states may play and win. Normal connection metadata may still be observed by underlying network infrastructure.</p>
+    <h3>What we are testing</h3>
+    <ul>
+      <li>Can browsers enroll as temporary nodes?</li>
+      <li>Can the governor assign bounded work?</li>
+      <li>Can heterogeneous consumer hardware execute it reliably?</li>
+      <li>Can returned work be verified before acceptance?</li>
+      <li>Can invalid, disconnected or malicious results be rejected?</li>
+      <li>Can participation be measured without granting volunteer nodes authority?</li>
+    </ul>
+    <div class="callout">
+      <h3>The security model</h3>
+      <p><strong>VOLUNTEER DEVICE != TRUSTED DEVICE</strong></p>
+      <p><strong>RETURNED RESULT != AUTHORITATIVE RESULT</strong></p>
+      <p><strong>COMPUTE CONTRIBUTED != AUTHORITY GRANTED</strong></p>
+      <p>The design assumes a volunteer browser can fail, disconnect, return incorrect data, or behave maliciously. Authentication identifies a pseudonymous node; it does not make the device or its output trustworthy.</p>
+    </div>
+    <h3>What could come later</h3>
+    <p>If this infrastructure proves reliable, separately approved future experiments could investigate appropriate public-data, highly parallel workloads: simulation sweeps, parameter searches, Monte Carlo work, numerical analysis, model evaluation, and other decomposable, independently verifiable workloads. These are future possibilities, not workloads operating now. Real scientific workloads require separate security, privacy, and scientific-validation gates.</p>
+  </section>
+
+  <section class="callout">
+    <span class="kicker">Alpha boundary</span>
+    <h2>This is a research infrastructure demonstration.</h2>
+    <p>Community Compute Alpha is intentionally constrained to harmless synthetic test work. It does not process classified, CUI, medical, private, or other sensitive research data. Volunteer devices are treated as untrusted execution nodes; returned results are candidates until independently verified. The Alpha validates participation, execution, verification and governance. Real sensitive or scientific expansion requires separate security, privacy and scientific-validation gates.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <p><small>This is an independent Scuba Research Collective initiative and is not a program of or endorsed by the Commonwealth of Virginia.</small></p>
+  <div><strong>Scuba Research Collective</strong><br />Veteran-founded research organization. Motto: <em>E malicia ad fulmina</em>.</div>
+  <div>This site is operated by Scuba Research Collective LLC. Scuba Research Collective Foundation is in formation as a separate public-benefit entity.</div>
+  <div>Community Compute participation is voluntary. Contributors control whether and when their devices perform Alpha work.</div>
+</footer>
+<script src="compute-config.js"></script>
+<script src="compute.js" defer></script>
+</body>
+</html>
