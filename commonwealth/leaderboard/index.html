@@ -11,12 +11,12 @@
   <!-- Open Graph / Social -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Commonwealth Surf — Leaderboard" />
-  <meta property="og:description" content="Server-authoritative scores. TODAY • THIS WEEK • ALL TIME. Highest verified distance wins the $25 prize." />
+  <meta property="og:description" content="Server-authoritative scores. TODAY • THIS WEEK • ALL TIME. Explore saved scores for the current game version." />
   <meta property="og:url" content="https://scubaresearchcollective.com/commonwealth/leaderboard/" />
   <meta property="og:site_name" content="Commonwealth.ai" />
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Commonwealth Surf — Leaderboard" />
-  <meta name="twitter:description" content="Today's leaderboard. $25 prize. Server-verified." />
+  <meta name="twitter:description" content="Saved scores. Free play. Server-verified." />
 </head>
 <body>
 <a class="skip-link" href="#main-content">Skip to content</a>
@@ -46,8 +46,8 @@
 <main id="main-content">
   <section class="page-hero leaderboard-hero">
     <span class="eyebrow">COMMONWEALTH SURF</span>
-    <h1>TODAY'S LEADERBOARD</h1>
-    <p class="lead">Server-authoritative scores for the Genesis Weekend pilot. Highest verified distance wins $25. Updated every few seconds.</p>
+    <h1 id="leaderboard-title">ALL-TIME LEADERBOARD</h1>
+    <p class="lead">Server-authoritative scores for the Genesis Weekend pilot. Compare verified distances. No cash prizes. Updated every few seconds.</p>
     <div class="actions">
       <a class="button" href="/commonwealth/">← BACK TO COMMONWEALTH</a>
       <a class="button primary" href="/commonwealth/surf/">PLAY SURF</a>
@@ -55,14 +55,15 @@
     </div>
   </section>
 
+  <p>Verified scores are saved on the server. All Time shows retained scores for the current game version (Surf 0.2). Today resets at midnight UTC (8 p.m. Eastern daylight time / 7 p.m. Eastern standard time); it does not erase saved scores. Earlier game versions are excluded to keep distances comparable. Browser participants are pseudonymous enrollments, not verified unique people.</p>
   <section class="leaderboard-stats" id="leaderboard-stats" aria-live="polite">
     <div class="stat today-stat">
       <div class="stat-value" id="stat-players">—</div>
-      <div class="stat-label">Players today</div>
+      <div class="stat-label">Browser participants</div>
     </div>
     <div class="stat">
       <div class="stat-value" id="stat-runs">—</div>
-      <div class="stat-label">Completed runs</div>
+      <div class="stat-label">Verified runs</div>
     </div>
     <div class="stat">
       <div class="stat-value" id="stat-best">—</div>
@@ -71,9 +72,9 @@
   </section>
 
   <div class="leaderboard-tabs" id="leaderboard-tabs" role="tablist" aria-label="Leaderboard timeframe">
-    <button class="button today-tab" role="tab" aria-selected="true" data-tab="today" id="tab-today">TODAY</button>
-    <button class="button" role="tab" aria-selected="false" data-tab="week" id="tab-week">THIS WEEK</button>
-    <button class="button" role="tab" aria-selected="false" data-tab="all" id="tab-all">ALL TIME</button>
+    <button class="button today-tab" role="tab" aria-selected="false" data-tab="today" id="tab-today">TODAY</button>
+    <button class="button" role="tab" aria-selected="false" data-tab="week" id="tab-week">LAST 7 DAYS</button>
+    <button class="button" role="tab" aria-selected="true" data-tab="all" id="tab-all">ALL TIME</button>
   </div>
 
   <section aria-labelledby="lb-heading">
@@ -99,20 +100,20 @@
   </section>
 
   <section class="surf-flow-style-8 callout">
-    <span class="kicker">Contest rules</span>
+    <span class="kicker">How scores work</span>
     <h2>Commonwealth Surf — Genesis Weekend</h2>
     <div class="rules-grid">
       <ul class="rule-list">
         <li>Free to play. No purchase necessary.</li>
         <li>Unlimited attempts.</li>
-        <li>Highest verified distance today wins $25.</li>
+        <li>Compare your verified distance on the leaderboard. No cash prizes.</li>
         <li>Tie: first valid score achieved.</li>
         <li>Server leaderboard is authoritative.</li>
-        <li>ScubaRC organizer/exhibition entries are not prize eligible.</li>
+        <li>ScubaRC organizer runs are marked as exhibition entries.</li>
       </ul>
       <ul class="rule-list">
         <li>No purchase of food or alcohol required.</li>
-        <li>Alcohol is not part of scoring, entry, additional attempts, or prizes.</li>
+        <li>Alcohol is not part of scoring, entry, or additional attempts.</li>
       </ul>
     </div>
   </section>

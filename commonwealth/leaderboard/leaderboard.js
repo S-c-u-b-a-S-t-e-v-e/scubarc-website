@@ -34,7 +34,8 @@
   const REFRESH_INTERVAL = 3000; // 3 seconds
   const MAX_ENTRIES = 50;
 
-  let currentTab = 'today';
+  const requestedTab = new URLSearchParams(window.location.search).get('tab');
+  let currentTab = ['today', 'week', 'all'].includes(requestedTab) ? requestedTab : 'all';
   let refreshTimer = null;
   let abortController = null;
 
@@ -50,7 +51,12 @@
   const statBest = document.getElementById('stat-best');
 
   function setTab(tab) {
+    if (!['today', 'week', 'all'].includes(tab)) return;
     currentTab = tab;
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState(null, '', url);
+    document.getElementById('leaderboard-title').textContent = {today: "TODAY’S LEADERBOARD", week: 'LAST 7 DAYS', all: 'ALL-TIME LEADERBOARD'}[tab];
     Object.entries(tabs).forEach(([key, el]) => {
       if (el) {
         el.setAttribute('aria-selected', key === tab);
@@ -70,7 +76,7 @@
     try {
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return '—';
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return date.toLocaleString([], { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     } catch {
       return '—';
     }
@@ -101,7 +107,11 @@
 
   function renderLeaderboard(data) {
     if (!data || !data.entries || data.entries.length === 0) {
-      leaderbody.innerHTML = '<tr class="leaderboard-empty"><td colspan="5">No scores yet today. Be the first to surf!</td></tr>';
+      const message = currentTab === 'today'
+        ? 'No verified scores today (UTC). Select All Time to see saved scores.'
+        : currentTab === 'week' ? 'No verified scores in the last 7 days. Select All Time for saved history.'
+        : 'No saved scores for the current game version yet. Be the first to surf!';
+      leaderbody.innerHTML = `<tr class="leaderboard-empty"><td colspan="5">${message}</td></tr>`;
       return;
     }
 
@@ -117,7 +127,7 @@
     if (hasExhibition) {
       const footnote = document.createElement('tr');
       footnote.className = 'leaderboard-footnote';
-      footnote.innerHTML = '<td colspan="5">EXHIBITION entries are ScubaRC organizer runs — not prize eligible.</td>';
+      footnote.innerHTML = '<td colspan="5">EXHIBITION entries identify ScubaRC organizer runs.</td>';
       leaderbody.appendChild(footnote);
     }
   }
@@ -185,7 +195,7 @@
   });
 
   // Initial load
-  fetchLeaderboard();
+  setTab(currentTab);
   startAutoRefresh();
 
   // Expose for debugging

@@ -63,12 +63,15 @@
       <h2 id="cohort-heading">A live test of community-powered research infrastructure.</h2>
     </div>
     <div class="stat-grid" id="compute-stats" aria-live="polite">
-      <div class="stat-card"><strong id="stat-contributors">—</strong><span>contributors enrolled</span></div>
+      <div class="stat-card"><strong id="stat-contributors">—</strong><span>browser enrollments (Surf + compute)</span></div>
       <div class="stat-card"><strong id="stat-nodes">—</strong><span>devices registered</span></div>
-      <div class="stat-card"><strong id="stat-threads">—</strong><span>logical CPU threads</span></div>
-      <div class="stat-card"><strong id="stat-verified">—</strong><span>verified work units</span></div>
-      <div class="stat-card"><strong id="stat-hours">—</strong><span>compute hours contributed</span></div>
+      <div class="stat-card"><strong id="stat-threads">—</strong><span>reported logical CPU threads</span></div>
+      <div class="stat-card"><strong id="stat-verified">—</strong><span>verified result receipts</span></div>
+      <div class="stat-card"><strong id="stat-hours">—</strong><span>reported runtime · accepted results</span></div>
     </div>
+    <p id="stats-status" role="status">Loading saved activity…</p>
+    <p>These are cumulative database totals, not a count of people online. Surf and compute share browser enrollment; returning on the same browser does not add a new enrollment. Reported CPU threads describe registered capability, not donated processing time.</p>
+    <p>Each accepted result adds a receipt. Runtime is reported by the browser and is not an independently measured compute donation. This tiny synthetic task can finish in milliseconds. Opening the page or clicking a link does not count as completed work; repeated clicks do not prove unique participants.</p>
   </section>
 
   <section class="split" id="contribute">
@@ -96,7 +99,7 @@
         <span>I understand this is voluntary, may use electricity, is not represented as a charitable tax deduction, and I may stop at any time.</span>
       </label>
       <div id="turnstile-slot"></div>
-      <button class="button primary compute-start" type="submit" id="compute-start">Start my first work unit</button>
+      <button class="button primary compute-start" type="submit" id="compute-start">Run one work unit</button>
       <p class="form-status" id="compute-status" role="status"></p>
     </form>
   </section>
@@ -135,7 +138,7 @@
     <h3>Results are candidates for verification</h3>
     <p>The browser returns a constrained result containing work_id, result, runtime_ms and client_version, together with node_id. Its pseudonymous node credential authenticates the request. The server checks the assignment and compares the result with its expected deterministic value before issuing a receipt and counting a verified Alpha work unit. A returned result is not authoritative simply because a volunteer device produced it.</p>
     <h3>What the application sends</h3>
-    <p>Application payloads include the limited browser capability profile; optional display name, locality and Virginia participation information deliberately entered by the participant; consent and human-verification information; work/result metadata; runtime/client information; and authenticated pseudonymous-node requests. Optional locality and Virginia participation are for internal/aggregate research measurement, not a public Surf player label. Players from other states may play and win. Normal connection metadata may still be observed by underlying network infrastructure.</p>
+    <p>Application payloads include the limited browser capability profile; optional display name, locality and Virginia participation information deliberately entered by the participant; consent and human-verification information; work/result metadata; runtime/client information; and authenticated pseudonymous-node requests. Optional locality and Virginia participation are for internal/aggregate research measurement, not a public Surf player label. Players from any state may play and appear on the leaderboard. Normal connection metadata may still be observed by underlying network infrastructure.</p>
     <h3>What we are testing</h3>
     <ul>
       <li>Can browsers enroll as temporary nodes?</li>

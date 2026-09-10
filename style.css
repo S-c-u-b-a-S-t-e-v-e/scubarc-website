@@ -202,3 +202,10 @@ nav a[aria-current="page"] {
 @media(max-width:880px){body.nav-open{overflow:hidden}}
 @media(max-width:560px){.card-grid.three{grid-template-columns:1fr}}
 .card a{overflow-wrap:anywhere}
+
+/* Keep public research and contact copy readable at narrow widths. */
+.card,.project,.split>div{min-width:0}
+.card .text-link{overflow-wrap:anywhere}
+.status{font-size:.8125rem}
+.eyebrow,.kicker{font-size:.875rem}
+nav a{font-size:.875rem}
