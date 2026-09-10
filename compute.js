@@ -64,6 +64,14 @@
     return window.turnstile.getResponse(turnstileWidgetId) || "";
   }
 
+  function formatRuntime(ms) {
+    ms = Math.max(0, Number(ms) || 0);
+    if (ms < 1000) return `${ms.toLocaleString()} ms`;
+    if (ms < 60000) return `${(ms / 1000).toFixed(2)} s`;
+    if (ms < 3600000) return `${(ms / 60000).toFixed(2)} min`;
+    return `${(ms / 3600000).toFixed(2)} h`;
+  }
+
   async function refreshStats() {
     try {
       const stats = await api("/stats", { method: "GET", headers: {} });
@@ -71,15 +79,18 @@
       document.getElementById("stat-nodes").textContent = Number(stats.nodes || 0).toLocaleString();
       document.getElementById("stat-threads").textContent = Number(stats.logical_threads || 0).toLocaleString();
       document.getElementById("stat-verified").textContent = Number(stats.verified_work_units || 0).toLocaleString();
-      document.getElementById("stat-hours").textContent = (Number(stats.compute_ms || 0) / 3600000).toFixed(1);
+      document.getElementById("stat-hours").textContent = formatRuntime(stats.compute_ms);
+      document.getElementById("compute-stats")?.classList.remove("stats-offline");
+      document.getElementById("stats-status").textContent = `Saved totals refreshed at ${new Date().toLocaleTimeString()}. Updates every 15 seconds while this page is open.`;
     } catch (_) {
+      document.getElementById("stats-status").textContent = "Cannot refresh saved totals. Any numbers shown are from the last successful update; this does not mean activity is zero.";
       document.getElementById("compute-stats")?.classList.add("stats-offline");
     }
   }
 
   function runWork(envelope) {
     return new Promise((resolve, reject) => {
-      const worker = new Worker("compute-worker.js");
+      const worker = new Worker("/compute-worker.js");
       worker.onmessage = (event) => {
         if (event.data?.type === "progress") {
           progress.value = event.data.percent;
@@ -163,8 +174,10 @@
       <span>Work ID: ${escapeHtml(result.work_id)}</span>
       <span>Runtime: ${(result.runtime_ms / 1000).toFixed(1)} seconds</span>
       <span>Receipt: ${escapeHtml(receipt.receipt_id)}</span>`;
-    workDetail.textContent = "Thank you. Your device completed its first Community Compute work unit.";
-    statusEl.textContent = "Contribution complete.";
+    workDetail.textContent = receipt.verified
+      ? "Thank you. Your accepted result is saved and counted below."
+      : "The server did not accept this result. It is not included in verified totals.";
+    statusEl.textContent = receipt.verified ? "Contribution verified and saved." : "Result was not verified.";
     await refreshStats();
   }
 
@@ -203,4 +216,6 @@
 
   loadTurnstile();
   refreshStats();
+  setInterval(() => { if (!document.hidden) refreshStats(); }, 15000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshStats(); });
 })();
