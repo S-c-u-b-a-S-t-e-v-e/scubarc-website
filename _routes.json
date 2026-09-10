@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "include": [
+    "/api/*",
+    "/.env*",
+    "/.git*",
+    "/.aws*",
+    "/.config/gcloud*",
+    "/credentials.json",
+    "/service_account.json",
+    "/service-account.json",
+    "/serviceAccountKey.json",
+    "/serviceaccountkey.json",
+    "/secrets.json",
+    "/token.json",
+    "/keys.json"
+  ],
+  "exclude": []
+}
