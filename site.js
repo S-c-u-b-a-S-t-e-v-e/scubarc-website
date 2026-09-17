@@ -1,10 +1,17 @@
 /**
- * ScubaRC — Generic site behavior (mobile navigation)
+ * ScubaRC — Generic site behavior (mobile navigation and shared labels)
  * Loaded by standard ScubaRC root pages.
- * Does NOT contain Commonwealth-specific logic (src preservation, etc.).
  */
 (function () {
   'use strict';
+
+  function normalizeSharedLabels() {
+    document.querySelectorAll('a[href="/commonwealth/"]').forEach((link) => {
+      if (link.textContent.trim() === 'Commonwealth.ai') {
+        link.textContent = 'ScubaRC Genesis';
+      }
+    });
+  }
 
   // Mobile navigation toggle
   function initMobileNav() {
@@ -45,12 +52,10 @@
     toggle.addEventListener('click', toggleNav);
     overlay.addEventListener('click', closeNav);
 
-    // Close nav when clicking a link
     nav.querySelectorAll('a').forEach(a => {
       a.addEventListener('click', closeNav);
     });
 
-    // Close nav on escape key
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && nav.classList.contains('open')) {
         closeNav();
@@ -58,10 +63,14 @@
     });
   }
 
-  // Initialize on DOM ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobileNav);
-  } else {
+  function init() {
+    normalizeSharedLabels();
     initMobileNav();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
   }
 })();
